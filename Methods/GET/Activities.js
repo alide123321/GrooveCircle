@@ -2,9 +2,9 @@ const express = require('express');
 const router = express.Router();
 
 router.get('/', (req, res) => {
-    const { currentSong } = req.params; 
+    const { activities } = req.params; 
     req.statusCode(200).json({
-        currentSong: "this the song youre listening to"
+        activities: "this is your feed"
     });
 });
 

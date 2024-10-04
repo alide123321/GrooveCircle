@@ -2,9 +2,9 @@ const express = require('express');
 const router = express.Router();
 
 router.get('/', (req, res) => {
-    const { currentSong } = req.params; 
+    const { MatchingInfo } = req.params; 
     req.statusCode(200).json({
-        currentSong: "this the song youre listening to"
+        matchingList: "matching details, currSong, artist, genre, etc..."
     });
 });
 
