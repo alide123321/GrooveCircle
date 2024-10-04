@@ -3,16 +3,15 @@ const router = express.Router();
 
 router.get('/', (req, res) => {
     const { userID } = req.query;
-
-    if (!userID) 
+    
+    if (!userID)
         return res.status(400).json({
             errmsg: "UserID is required"
         });
 
-        //call spotify api to get song history
-
+        // This is where you would query the database for the user's Spotify ID
     res.status(200).json({
-        songHistory: "the song history"
+        spotifyID: "123456"
     });
 });
 
