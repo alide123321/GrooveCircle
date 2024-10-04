@@ -1,0 +1,13 @@
+const express = require('express');
+const router = express.Router();
+
+// POST route for sending a message
+router.post('/', (req, res) => {
+    const { userID, friendID, message } = req.body;
+    if (!userID || !friendID || !message) {
+        return res.status(400).send('userID, friendID, and message are required');
+    }
+    res.status(200).send(`User with ID ${userID} sent message to ${friendID}: "${message}"`);
+});
+
+module.exports = router;

@@ -1,0 +1,13 @@
+const express = require('express');
+const router = express.Router();
+
+// POST route for creating a chatroom
+router.post('/', (req, res) => {
+    const { userID, chatroomID } = req.body;
+    if (!userID || !chatroomID) {
+        return res.status(400).send('userID and chatroomID are required');
+    }
+    res.status(200).send(`Chatroom with ID ${chatroomID} created by user with ID ${userID}`);
+});
+
+module.exports = router;

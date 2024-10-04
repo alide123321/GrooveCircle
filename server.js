@@ -25,30 +25,16 @@ const files = getFiles(methodsPath);
 // Use each file as a router
 files.forEach(file => {
     const router = require(file);
-    const method = path.basename(path.dirname(file)).toLowerCase();
     const routePath = `/${path.basename(file, path.extname(file))}`;
     
-    console.log(`Setting up route: ${method.toUpperCase()} ${routePath} -> ${file}`);
+    console.log(`Setting up route: ${routePath} -> ${file}`);
     
-    switch (method) {
-        case 'get':
-            app.get(routePath, router);
-            break;
-        case 'post':
-            app.post(routePath, router);
-            break;
-        case 'delete':
-            app.delete(routePath, router);
-            break;
-        // Add more cases for other HTTP methods if needed
-        default:
-            console.error(`Unsupported method: ${method} for route: ${routePath}`);
-    }
+    app.use(routePath, router);
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Server is running on port http://localhost:${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
 });
 
 module.exports = app;
