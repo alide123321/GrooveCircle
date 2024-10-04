@@ -3,13 +3,12 @@ const router = express.Router();
 
 // POST route for creating a user
 router.post('/', (req, res) => {
-    const { userID } = req.params; 
+    const userID = req.query.userID;
 
-    if(userID ==null){
-        return res.status(400).send('UserID is required');
+    if (isNaN(userID)) {
+        return res.status(400).send('Valid UserID is required');
     }
     res.status(200).send(`User with ID ${userID} created.`);
 });
-
 
 module.exports = router;
