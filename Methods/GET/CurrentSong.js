@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-router.get('/CurrentSong', (req, res) => {
+router.get('/', (req, res) => {
     const { currentSong } = req.params; 
     req.statusCode(200).json({
         username: "this the song youre listening to"

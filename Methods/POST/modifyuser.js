@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 // POST route for modifying a user
-router.post('/modifyUser', (req, res) => {
+router.post('/', (req, res) => {
     const { userID, newUsername } = req.body;
     // Logic for modifying the user
     if (!userID || !newUsername) {

@@ -10,4 +10,5 @@ router.post('/', (req, res) => {
     res.status(200).send(`User with ID ${userID} sent a friend request to ${friendID}`);
 });
 
+
 module.exports = router;
