@@ -3,11 +3,15 @@ const router = express.Router();
 
 // POST route for linking a Spotify account
 router.post('/', (req, res) => {
-    const { userID, spotifyAccount } = req.body;
-    if (!userID || !spotifyAccount) {
-        return res.status(400).send('userID and spotifyAccount are required');
-    }
-    res.status(200).send(`Spotify account ${spotifyAccount} linked to user with ID ${userID}`);
+    const { userID } = req.query;
+
+    if (!userID) 
+        return res.status(400).json({
+            errmsg: 'userID and blockID are required'
+        });
+
+    let spotifyAccountID = 1234123123
+    res.status(200).send(`Spotify account ${spotifyAccountID} linked to user with ID ${userID}`);
 });
 
 module.exports = router;
