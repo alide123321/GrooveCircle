@@ -8,9 +8,15 @@ router.get('/', (req, res) => {
         return res.status(400).json({
             errmsg: "UserID is required"
         });
+    
+    const blockedList = [
+        { userID: "124" },
+        { userID: "125" },
+        { userID: "126" },
+    ]
 
     res.status(200).json({
-        blockedList: "blocked people"
+        blockedList: blockedList
     });
 });
 

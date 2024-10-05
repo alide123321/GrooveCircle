@@ -10,7 +10,7 @@ router.get('/', (req, res) => {
         });
 
     res.status(200).json({
-        username: "JohnDoe"
+        username: "alide"
     });
 });
 

@@ -12,7 +12,7 @@ router.get('/', (req, res) => {
     //calls other services to get user info and return it in the json
     
     res.status(200).json({
-        user: "maps to username, songHist, artistHist, userIcon, friends, block, songID"
+        user: "userInfo"
     });
 });
 

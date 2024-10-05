@@ -12,7 +12,7 @@ router.get('/', (req, res) => {
         //call other services to get the matching details
 
     res.status(200).json({
-        matchingList: "matching details, currSong, artist, genre, etc..."
+        matchingList: "matching info"
     });
 });
 

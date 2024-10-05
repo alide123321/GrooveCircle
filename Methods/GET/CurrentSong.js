@@ -9,8 +9,15 @@ router.get('/', (req, res) => {
             errmsg: "UserID is required"
         });
 
+    const currentSong = {
+        title: "Night",
+        artist: "Keshi", 
+        album: "Requiem", 
+        duration: "2:59", 
+    }
+
     res.status(200).json({
-        currentSong: "this the song youre listening to"
+        currentSong: currentSong
     });
 });
 

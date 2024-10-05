@@ -9,8 +9,13 @@ router.get('/', (req, res) => {
             errmsg: "UserID is required"
         });
     
+    const friendsList = [
+        { userID: "005"},
+        { userID: "006"},
+        { userID: "007"},
+    ]
     res.status(200).json({
-        friendsList: "these are your friends"
+        friendsList: friendsList
     });
 });
 
