@@ -1,12 +1,13 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const env = require('dotenv').config();
 
 const app = express();
 const methodsPath = path.join(__dirname, 'Methods');
 
 const { MongoClient, ServerApiVersion } = require('mongodb');
-const uri = `mongodb+srv://${encodeURIComponent(env.MongoDBUser)}:${encodeURIComponent(env.MongoDBPassword)}@testcluster1.yoy0t.mongodb.net/?retryWrites=true&w=majority&appName=testCluster1`;
+const uri = `mongodb+srv://${encodeURIComponent(process.env.MongoDBUser)}:${encodeURIComponent(process.env.MongoDBPassword)}@testcluster1.yoy0t.mongodb.net/?retryWrites=true&w=majority&appName=testCluster1`;
 
 const client = new MongoClient(uri, {
     serverApi: {
