@@ -53,9 +53,12 @@ files.forEach(file => {
     const router = require(file);
     const routePath = `/${path.basename(file, path.extname(file))}`;
     
-    console.log(`Setting up route: ${routePath} -> ${file}`);
+    try {
+        app.use(routePath, router);
+    } catch (error) {
+        console.error(`Failed to use route ${routePath}: ${error}`);
+    }
     
-    app.use(routePath, router);
 });
 
 const PORT = process.env.PORT || 3000;
