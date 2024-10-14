@@ -1,7 +1,14 @@
 {
+  "scripts": {
+    "start": "node server.js"
+  },
   "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
-    "mongodb": "^6.9.0"
+    "mongodb": "^6.9.0",
+    "node-fetch": "^2.7.0",
+    "querystring": "^0.2.1"
   }
 }

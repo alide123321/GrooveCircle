@@ -1,13 +1,18 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const env = require('dotenv').config();
 
 const app = express();
+app.use(express.static(path.join(__dirname, 'public')))
+   .use(cors())
+   .use(cookieParser());
 const methodsPath = path.join(__dirname, 'Methods');
 
 const { MongoClient, ServerApiVersion } = require('mongodb');
-const uri = `mongodb+srv://${encodeURIComponent(process.env.MongoDBUser)}:${encodeURIComponent(process.env.MongoDBPassword)}@testcluster1.yoy0t.mongodb.net/?retryWrites=true&w=majority&appName=testCluster1`; // for testCluster1
+const uri = `mongodb+srv://${encodeURIComponent(process.env.MONGO_DB_USER)}:${encodeURIComponent(process.env.MONGO_DB_PASSWORD)}@testcluster1.yoy0t.mongodb.net/?retryWrites=true&w=majority&appName=testCluster1`; // for testCluster1
 
 const client = new MongoClient(uri, {
     serverApi: {
@@ -31,6 +36,7 @@ async function runMongoDB() {
     }
 }
 runMongoDB().catch(console.dir);
+
 
 // Function to recursively get all files in a directory
 function getFiles(dir) {
@@ -64,7 +70,7 @@ files.forEach(file => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`Server is running on  ${PORT}`);
 });
 
 module.exports = app;
