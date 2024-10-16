@@ -4,7 +4,7 @@ const querystring = require("querystring");
 const router = express.Router();
 
 router.get("/", (req, res) => {
-  var refresh_token = req.query.refresh_token;
+  let refresh_token = req.query.refresh_token;
   const authOptions = {
     method: "POST",
     headers: {
