@@ -43,6 +43,10 @@ router.get("/", (req, res) => {
             .then(response => response.json())
             .then(body => {
               console.log(body);
+
+              // store access token and refresh token in session
+              req.session.access_token = access_token;
+              req.session.refresh_token = refresh_token;
     
               // Redirect logic (replace res.redirect with your logic)
               res.redirect('/#' + querystring.stringify({

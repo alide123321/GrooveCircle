@@ -4,8 +4,18 @@ const path = require('path');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const env = require('dotenv').config();
-
 const app = express();
+const session = require('express-session');
+
+// use express-session to store access token and refresh token
+app.use(session({
+    //secret: process.env.SPOTIFY_CLIENT_SECRET,
+    secret: process.env.SESSION_SECRET, 
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false }
+}));
+
 app.use(express.static(path.join(__dirname, 'public')))
    .use(cors())
    .use(cookieParser());
