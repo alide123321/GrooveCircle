@@ -30,9 +30,7 @@ router.get("/", (req, res) => {
       })
     };
     
-    fetch('https://accounts.spotify.com/api/token', authOptions)
-      .then(response => response.json())
-      .then(body => {
+    fetch('https://accounts.spotify.com/api/token', authOptions).then(response => response.json()).then(body => {
         if (body.access_token) {
           const { access_token, refresh_token } = body;
           const options = {
