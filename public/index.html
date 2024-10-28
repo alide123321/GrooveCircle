@@ -50,6 +50,10 @@
         </div>
       </div>
     </script>
+    
+    <!--logout button-->
+    <button id="logout-button" style="display: none;">Logout</button>
+
 
     <script id="oauth-template" type="text/x-handlebars-template">
       <h2>oAuth info</h2>
@@ -93,9 +97,11 @@
             error = params.error;
 
         if (error) {
+          console.log("authentication error?", error);
           alert('There was an error during the authentication');
         } else {
           if (access_token) {
+            console.log('User is logged in'); 
             // render oauth info
             oauthPlaceholder.innerHTML = oauthTemplate({
               access_token: access_token,
@@ -112,13 +118,32 @@
 
                   $('#login').hide();
                   $('#loggedin').show();
+                  $('#logout-button').show(); 
                 }
             });
           } else {
+              console.log('No user loggin in');
               // render initial screen
               $('#login').show();
               $('#loggedin').hide();
+              $('#logout-button').hide() 
           }
+
+          document.getElementById('logout-button').addEventListener('click', () => {
+            fetch('/logout', {
+                method: 'POST',
+                credentials: 'include'
+            }).then(response => {
+                if (response.ok) {
+                  // Clear local storage and hopefully reload page? 
+                  localStorage.removeItem('access_token');
+                  localStorage.removeItem('refresh_token');
+                  window.location.href = '/';
+                } else {
+                    alert('Logout failed');
+                }
+            });
+        });
 
           document.getElementById('obtain-new-token').addEventListener('click', function() {
             $.ajax({
