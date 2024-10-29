@@ -55,9 +55,10 @@ router.get("/", (req, res) => {
           fetch("https://api.spotify.com/v1/me", options)
             .then((response) => response.json())
             .then((body) => {
-              res.cookie("access_token", access_token, { maxAge: 900000, httpOnly: false });
-              res.cookie("refresh_token", refresh_token, { maxAge: 900000, httpOnly: false });
-
+              // Store user data in session | 15 minutes | httpsOnly means you can access cookies on the client-side
+              res.cookie("access_token", access_token, { maxAge: 15 * 60000, httpOnly: false }); 
+              res.cookie("refresh_token", refresh_token, { maxAge: 15 * 60000, httpOnly: false });
+              res.cookie
               // Redirect logic (replace res.redirect with your logic)
               res.redirect("/#");
             })
