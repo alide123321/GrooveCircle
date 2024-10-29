@@ -1,12 +1,17 @@
 const express = require("express");
+const cookieParser = require('cookie-parser');
 const router = express.Router();
 
+const app = express();
+
+app.use(cookieParser());
+
+
 router.post("/", (req, res) => {
-  console.log("logout");
   // clear cookies related to authentication
-  res.clearCookie(process.env.SPOTIFY_STATE_KEY);
-  res.clearCookie("spotifyAuthToken");
-  
+  res.clearCookie("access_token");
+  res.clearCookie("refresh_token");
+
   // destroy session 
   req.session.destroy((err) => {
     if (err) {

@@ -27,14 +27,17 @@
         </div>
         <div id="oauth">
         </div>
+        <!-- Button to obtain a new token using the refresh token -->
         <button class="btn btn-default" id="obtain-new-token">Obtain new token using the refresh token</button>
       </div>
     </div>
 
+    <!-- Handlebars template for displaying user profile information -->
     <script id="user-profile-template" type="text/x-handlebars-template">
       <h1>Logged in as {{display_name}}</h1>
       <div class="media">
         <div class="pull-left">
+          <!-- User profile image -->
           <img class="media-object" width="150" src="{{images.0.url}}" />
         </div>
         <div class="media-body">
@@ -51,10 +54,10 @@
       </div>
     </script>
     
-    <!--logout button-->
+    <!-- Logout button, initially hidden -->
     <button id="logout-button" style="display: none;">Logout</button>
 
-
+    <!-- Handlebars template for displaying OAuth information -->
     <script id="oauth-template" type="text/x-handlebars-template">
       <h2>oAuth info</h2>
       <dl class="dl-horizontal">
@@ -82,6 +85,12 @@
           return hashParams;
         }
 
+        function getCookie(name) {
+            let value = "; " + document.cookie;
+            let parts = value.split("; " + name + "=");
+            if (parts.length === 2) return parts.pop().split(";").shift();
+        }
+
         var userProfileSource = document.getElementById('user-profile-template').innerHTML,
             userProfileTemplate = Handlebars.compile(userProfileSource),
             userProfilePlaceholder = document.getElementById('user-profile');
@@ -92,8 +101,8 @@
 
         var params = getHashParams();
 
-        var access_token = params.access_token,
-            refresh_token = params.refresh_token,
+        var access_token = getCookie('access_token'),
+            refresh_token = getCookie('refresh_token'),
             error = params.error;
 
         if (error) {
@@ -164,4 +173,3 @@
     </script>
   </body>
 </html>
-
