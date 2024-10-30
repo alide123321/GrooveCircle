@@ -13,6 +13,7 @@ const client = new MongoClient(uri);
 const app = express();
 
 app.use(cookieParser());
+router.use(express.json());
 
 router.get("/", (req, res) => {
   let stateKey = process.env.SPOTIFY_STATE_KEY;
@@ -28,7 +29,7 @@ router.get("/", (req, res) => {
         })
     );
   } else {
-    res.clearCookie(stateKey);
+    //res.clearCookie(stateKey);
     const authOptions = {
       method: "POST",
       headers: {
@@ -36,7 +37,7 @@ router.get("/", (req, res) => {
         Authorization:
           "Basic " +
           Buffer.from(
-            process.env.SPOTIFY_CLIENT_ID +
+            process.env.SPOTIFY_CLIENT_ID + 
               ":" +
               process.env.SPOTIFY_CLIENT_SECRET
           ).toString("base64"),
@@ -63,7 +64,6 @@ router.get("/", (req, res) => {
               // Store user data in session | 15 minutes | httpsOnly means you can access cookies on the client-side
               const database = client.db('groovecircle');
               const users = database.collection('users');
-              console.log(body);
 
               users.findOne({ "spotify_info.id": body.id })
                 .then(user => {
@@ -87,8 +87,7 @@ router.get("/", (req, res) => {
                     
                     fetch('http://localhost:3000/createUser', createuserOptions).catch(error => {
                       console.error("Error creating user:", error);
-                    }
-                    );
+                    });
                   } else {
                     user.spotify_info.refresh_token = refresh_token;
                     users.updateOne({ "spotify_info.id": body.id }, { $set: { "spotify_info.refresh_token": refresh_token } });
@@ -103,7 +102,8 @@ router.get("/", (req, res) => {
                   console.error("Error findings user:", error);
                   res.redirect("/#" + querystring.stringify({ error: "invalid_token" }));
                 });
-            })
+
+            })  
             .catch((error) => {
               console.error("Error fetching user data:", error);
               res.redirect(

@@ -8,7 +8,7 @@ router.get('/', function(req, res) {
   const state = crypto.randomBytes(60).toString('hex').slice(0, 16);
   // store state key in cookie
   res.cookie(process.env.SPOTIFY_STATE_KEY, state);
-  const scope = "user-read-private user-read-email";
+  const scope = "user-read-private user-read-email user-read-playback-state user-read-currently-playing playlist-read-private playlist-read-collaborative playlist-read-private user-read-playback-position user-top-read user-read-recently-played user-library-read";
 
   // redirect to spotify login page
   res.redirect(

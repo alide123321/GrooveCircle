@@ -29,8 +29,6 @@ router.post('/', (req, res) => {
           Country: req.body.country,
           
         }
-      }).then(result => {
-        console.log("User inserted:", result.insertedId);
       })
       .catch(error => {
         console.error("Error inserting user:", error);
@@ -38,7 +36,7 @@ router.post('/', (req, res) => {
       });
 
 
-    res.status(200).send(`User with ID ${user._id} created.`);
+    res.status(200).send("User created successfully");
 });
 
 
