@@ -59,26 +59,36 @@ router.get("/", (req, res) => {
 
           fetch("https://api.spotify.com/v1/me", options)
             .then((response) => response.json())
-            .then((body) => {
+            .then((body) => { 
               // Store user data in session | 15 minutes | httpsOnly means you can access cookies on the client-side
-              console.log("User data:", body);
               const database = client.db('groovecircle');
               const users = database.collection('users');
+              console.log(body);
 
               users.findOne({ "spotify_info.id": body.id })
                 .then(user => {
                   if (!user) {
-                    axios.post('http://localhost:3000/createUser', { // Call createUser POST method
-                      username: 'YOUR MOTHER',
+
+                    const createuserOptions = {
+                      method: "POST",
                       headers: {
-                      'Content-Type': 'application/json'
-                    }}) 
-                      .then(response => {
-                        console.log("User created:", response);
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({
+                        username: body.display_name,
+                        id: body.id,
+                        refresh_token: refresh_token,
+                        access_token: access_token,
+                        email: body.email,
+                        profile_image: body.images[0]?.url,
+                        Country: body.country,
                       })
-                      .catch(error => {
-                        console.error("Error creating user:", error);
-                      }); 
+                    };
+                    
+                    fetch('http://localhost:3000/createUser', createuserOptions).catch(error => {
+                      console.error("Error creating user:", error);
+                    }
+                    );
                   } else {
                     user.spotify_info.refresh_token = refresh_token;
                     users.updateOne({ "spotify_info.id": body.id }, { $set: { "spotify_info.refresh_token": refresh_token } });
