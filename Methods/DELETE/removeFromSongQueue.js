@@ -44,7 +44,7 @@ router.delete('/', async (req, res) => {
             message: `User with ID ${userID} removed from song queue for song ${songID}`
         });
     } catch (error) {
-        console.error('Database error', error);
+        console.error('could not remove user from song queue', error);
         res.status(500).json({
             errmsg: 'Internal server error'
         });

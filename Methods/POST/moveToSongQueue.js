@@ -42,9 +42,9 @@ router.post('/', async (req, res) => {
         res.status(200).json({
             message: `user with ID ${userID} added to song queue for song ${songID}`
         });
-        
+
     } catch (error) {
-        console.error('db error', error);
+        console.error('could not add user to song queue', error);
         res.status(500).json({
             errmsg: 'failed to add user to song queue'
         });
