@@ -11,6 +11,7 @@ router.post("/", (req, res) => {
   // clear cookies related to authentication
   res.clearCookie("access_token");
   res.clearCookie("refresh_token");
+  res.clearCookie("spotify_id");
 
   // destroy session 
   req.session.destroy((err) => {
