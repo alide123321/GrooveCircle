@@ -6,6 +6,7 @@ const { database } = require("../../dbClient");
 router.delete('/', async (req, res) => {
     const { userID, songID } = req.query;
 
+    // check if userID and songID are provided
     if (!userID || !songID) {
         return res.status(400).json({
             errmsg: 'userID and songID are required'
@@ -21,6 +22,7 @@ router.delete('/', async (req, res) => {
             songID: songID
         });
 
+        // if user is not in queue, send error 
         if (!existingEntry) {
             console.error(`User ${userID} is not in queue for song ${songID}`);
             return res.status(400).json({
@@ -28,11 +30,16 @@ router.delete('/', async (req, res) => {
             });
         }
 
+        // remove user from queue
         await queues.deleteOne({
             userID: userID,
             songID: songID
         });
+        
+        // log remove from queue
+        console.log(`user with ID ${userID} removed from song queue for song ${songID}`);
 
+        // send response
         res.status(200).json({
             message: `User with ID ${userID} removed from song queue for song ${songID}`
         });
