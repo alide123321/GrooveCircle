@@ -3,5 +3,4 @@ const uri = `mongodb+srv://${encodeURIComponent(process.env.MONGO_DB_USER)}:${en
 const client = new MongoClient(uri);
 const database = client.db('groovecircle');
 
-
 module.exports = { database };

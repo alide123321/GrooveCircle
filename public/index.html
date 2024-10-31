@@ -198,6 +198,7 @@
                   // Clear local storage and hopefully reload page? 
                   localStorage.removeItem('access_token');
                   localStorage.removeItem('refresh_token');
+                  localStorage.removeItem('spotify_id');
                   window.location.href = '/';
                 } else {
                     alert('Logout failed');
@@ -212,10 +213,9 @@
                 'refresh_token': refresh_token
               }
             }).done(function(data) {
-              access_token = data.access_token;
               oauthPlaceholder.innerHTML = oauthTemplate({
-                access_token: access_token,
-                refresh_token: refresh_token
+                access_token: getCookie('access_token'),
+                refresh_token: getCookie('refresh_token')
               });
             });
           }, false);

@@ -91,6 +91,7 @@ router.get("/", (req, res) => {
                   }
                   res.cookie("access_token", access_token, { maxAge: 60 * 60000, httpOnly: false }); 
                   res.cookie("refresh_token", refresh_token, { maxAge: 60 * 60000, httpOnly: false });
+                  res.cookie("spotify_id", body.id, { maxAge: 60 * 60000, httpOnly: false });
                   
                   // Redirect logic (replace res.redirect with your logic)
                   res.redirect("/#");

@@ -1,8 +1,11 @@
 const express = require("express");
 const fetch = require("node-fetch");
 const querystring = require("querystring");
+const cookieParser = require('cookie-parser');
 const { database } = require("../../dbClient");
 
+const app = express();
+app.use(cookieParser());
 const router = express.Router();
 
 router.get("/", (req, res) => {
@@ -34,6 +37,7 @@ router.get("/", (req, res) => {
         
         const { access_token } = body;
         users.updateOne({"spotify_info.refresh_token": refresh_token}, { $set: { "spotify_info.access_token": access_token } });
+        res.cookie("refresh_token", refresh_token, { maxAge: 60 * 60000, httpOnly: false });
 
         res.send({
           access_token: access_token,
