@@ -9,12 +9,13 @@ router.post('/', (req, res) => {
 
     // get user to link with spotify api
     //link with datebase and reuturn user id
-    
+
     const users = database.collection('users');
 
     const user = users.insertOne({
         friends_list: [],
         message_list: [],
+        blocked_list: [],
         username: req.body.username,
         spotify_info: {
           id: req.body.id,

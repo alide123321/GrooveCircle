@@ -195,11 +195,8 @@
                 credentials: 'include'
             }).then(response => {
                 if (response.ok) {
-                  // Clear local storage and hopefully reload page? 
-                  localStorage.removeItem('access_token');
-                  localStorage.removeItem('refresh_token');
-                  localStorage.removeItem('spotify_id');
-                  window.location.href = '/';
+                  // reloads the page
+                  location.reload();
                 } else {
                     alert('Logout failed');
                 }

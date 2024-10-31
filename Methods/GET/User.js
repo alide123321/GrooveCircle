@@ -1,6 +1,9 @@
 const express = require('express');
-const router = express.Router();
 const { database } = require('../../dbClient');
+const router = express.Router();
+
+const app = express();
+app.use(express.json());
 
 router.get('/', async (req, res) => {
     
@@ -13,6 +16,11 @@ router.get('/', async (req, res) => {
 
     const users = database.collection('users');
     const user = await users.findOne({"spotify_info.id" : userID });
+
+    if (!user)
+        return res.status(404).json({
+            errmsg: "User not found"
+        });
 
     //calls other services to get user info and return it in the json
     
