@@ -6,6 +6,7 @@ const { database } = require('../../dbClient');
 router.post('/', async (req, res) => {
     const { userID, songID } = req.query;
 
+    // check if userID and songID are provided
     if (!userID || !songID) {
         return res.status(400).json({
             errmsg: 'userID and songID are required'
@@ -21,6 +22,7 @@ router.post('/', async (req, res) => {
             songID: songID 
         });
 
+        // if user is already in queue, send error
         if (existingEntry) {
             console.error(`User ${userID} is already in queue for song ${songID}`);
             return res.status(400).json({
@@ -33,15 +35,18 @@ router.post('/', async (req, res) => {
             userID: userID,
             songID: songID
         });
+        // log add to queue 
+        console.log(`user with ID ${userID} added to song queue for song ${songID}`);
 
+        // send response
         res.status(200).json({
             message: `user with ID ${userID} added to song queue for song ${songID}`
         });
-
+        
     } catch (error) {
-        console.error('Database error', error);
+        console.error('db error', error);
         res.status(500).json({
-            errmsg: 'Internal server error'
+            errmsg: 'failed to add user to song queue'
         });
     }
 });
