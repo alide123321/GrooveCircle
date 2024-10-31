@@ -18,7 +18,6 @@ router.post("/", async (req, res) => {
       errmsg: "User cannot block themselves",
     });
 
-  try {
     let fetchOptions = {
       method: "GET",
       headers: {
@@ -30,40 +29,30 @@ router.post("/", async (req, res) => {
     .then((response) => response.json())
     .then((body) => {
         if (!body.user)
-        throw new Error("User not found");
-    })
-    .catch((error) => {
+            throw new Error("User not found");
+
+        fetch(`http://localhost:${process.env.PORT}/Blocked?userID=${userID}`, fetchOptions)
+        .then((response) => response.json())
+        .then((body) => {
+            if (!body.blockedlist) 
+                throw new Error("User not found");
+
+            if (body.blockedlist.includes(blockID)) return;
+
+            users.updateOne({ "spotify_info.id": userID },{ $push: { blocked_list: blockID }});
+        }).catch((error) => {
+            console.error("Error fetching user:", error);
+            return res.status(404).send({
+                errmsg: error.message || "An error occurred",
+            });
+        });
+    }).catch((error) => {
         console.error("Error fetching user:", error);
         return res.status(404).json({
             errmsg: error.message || "An error occurred",
         });
     });
 
-    if(res.headersSent) return;
-
-    fetch(`http://localhost:${process.env.PORT}/Blocked?userID=${userID}`, fetchOptions)
-    .then((response) => response.json())
-    .then((body) => {
-        if (!body.blockedlist) 
-            throw new Error("User not found");
-
-        if (body.blockedlist.includes(blockID)) return;
-
-        users.updateOne({ "spotify_info.id": userID },{ $push: { friends_list: blockID }});
-    }).catch((error) => {
-        console.error("Error fetching user:", error);
-        return res.status(404).send({
-            errmsg: error.message || "An error occurred",
-        });
-    });
-
-    if (res.headersSent) return;
-
-    res.status(200).send(`User with ID \'${userID}\' blocked user with ID \'${blockID}\'`);
-  } catch (error) {
-    console.error("Error processing request:", error);
-    res.status(500).send("Error processing request");
-  }
 });
 
 module.exports = router;

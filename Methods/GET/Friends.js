@@ -21,7 +21,12 @@ router.get('/', (req, res) => {
     };
     
     fetch(`http://localhost:${process.env.PORT}/User?userID=${userID}`, fetchOptions)
-    .then(response => response.json())
+    .then(response => {
+        if (response.status !== 200) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(body => {
         if(!body.user || !body.user.friends_list)
             throw new Error("User not found");
