@@ -1,14 +1,9 @@
 const express = require("express");
 const cookieParser = require('cookie-parser');
 const fetch = require("node-fetch");
-const axios = require("axios");
-const { MongoClient } = require("mongodb");
 const querystring = require("querystring");
 const router = express.Router();
-const createUser = require("../POST/createUser");
-
-const uri = `mongodb+srv://${encodeURIComponent(process.env.MONGO_DB_USER)}:${encodeURIComponent(process.env.MONGO_DB_PASSWORD)}@testcluster1.yoy0t.mongodb.net/?retryWrites=true&w=majority&appName=testCluster1`; // for testCluster1
-const client = new MongoClient(uri);
+const { database } = require('../../dbClient');
 
 const app = express();
 
@@ -62,12 +57,13 @@ router.get("/", (req, res) => {
             .then((response) => response.json())
             .then((body) => { 
               // Store user data in session | 15 minutes | httpsOnly means you can access cookies on the client-side
-              const database = client.db('groovecircle');
               const users = database.collection('users');
 
               users.findOne({ "spotify_info.id": body.id })
                 .then(user => {
                   if (!user) {
+
+                    console.log("Creating user:", body.display_name);
 
                     const createuserOptions = {
                       method: "POST",
@@ -89,11 +85,12 @@ router.get("/", (req, res) => {
                       console.error("Error creating user:", error);
                     });
                   } else {
-                    user.spotify_info.refresh_token = refresh_token;
+                    user.spotify_info.access_token = access_token;
+                    users.updateOne({ "spotify_info.id": body.id }, { $set: { "spotify_info.access_token": access_token } });
                     users.updateOne({ "spotify_info.id": body.id }, { $set: { "spotify_info.refresh_token": refresh_token } });
                   }
-                  res.cookie("access_token", access_token, { maxAge: 15 * 60000, httpOnly: false }); 
-                  res.cookie("refresh_token", refresh_token, { maxAge: 15 * 60000, httpOnly: false });
+                  res.cookie("access_token", access_token, { maxAge: 60 * 60000, httpOnly: false }); 
+                  res.cookie("refresh_token", refresh_token, { maxAge: 60 * 60000, httpOnly: false });
                   
                   // Redirect logic (replace res.redirect with your logic)
                   res.redirect("/#");

@@ -1,10 +1,14 @@
 const express = require("express");
 const fetch = require("node-fetch");
 const querystring = require("querystring");
+const { database } = require("../../dbClient");
+
 const router = express.Router();
 
 router.get("/", (req, res) => {
+  const users = database.collection('users');
   let refresh_token = req.query.refresh_token;
+
   const authOptions = {
     method: "POST",
     headers: {
@@ -27,7 +31,10 @@ router.get("/", (req, res) => {
     .then((response) => response.json())
     .then((body) => {
       if (body.access_token) {
-        const { access_token, refresh_token } = body;
+        
+        const { access_token } = body;
+        users.updateOne({"spotify_info.refresh_token": refresh_token}, { $set: { "spotify_info.access_token": access_token } });
+
         res.send({
           access_token: access_token,
           refresh_token: refresh_token,

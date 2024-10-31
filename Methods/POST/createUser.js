@@ -1,10 +1,7 @@
 const express = require('express');
 const router = express.Router();
 router.use(express.json());
-
-const { MongoClient } = require("mongodb");
-const uri = `mongodb+srv://${encodeURIComponent(process.env.MONGO_DB_USER)}:${encodeURIComponent(process.env.MONGO_DB_PASSWORD)}@testcluster1.yoy0t.mongodb.net/?retryWrites=true&w=majority&appName=testCluster1`; // for testCluster1
-const client = new MongoClient(uri);
+const { database } = require("../../dbClient");
 
 
 // POST route for creating a user
@@ -12,8 +9,7 @@ router.post('/', (req, res) => {
 
     // get user to link with spotify api
     //link with datebase and reuturn user id
-
-    const database = client.db('groovecircle');
+    
     const users = database.collection('users');
 
     const user = users.insertOne({
