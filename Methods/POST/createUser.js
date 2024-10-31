@@ -22,7 +22,7 @@ router.post('/', (req, res) => {
           access_token: req.body.access_token,
           email: req.body.email,
           profile_image: req.body.profile_image,
-          Country: req.body.country,
+          Country: req.body.Country,
           
         }
       })
