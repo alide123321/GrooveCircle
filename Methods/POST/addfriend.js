@@ -44,10 +44,7 @@ router.post('/', async (req, res) => {
             });
         });
 
-        
-
         if(res.headersSent) return;
-        
 
         fetch(`http://localhost:${process.env.PORT}/Friends?userID=${friendID}`, fetchOptions)
         .then(response => response.json())
@@ -65,7 +62,9 @@ router.post('/', async (req, res) => {
             });
         });
 
+        if(res.headersSent) return;
         res.status(200).send(`User with ID \'${userID}\' added \'${friendID}\' as a friend`);
+    
     } catch (error) {
         console.error("Error processing request:", error);
         res.status(500).send("Error processing request");
