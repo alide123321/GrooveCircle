@@ -6,14 +6,14 @@ const { database } = require("../../dbClient");
 // POST route for blocking a user
 router.post("/", async (req, res) => {
   const users = database.collection("users");
-  const { userID, blockID } = req.query;
+  const { userid, blockid } = req.headers;
 
-  if (!userID || !blockID)
+  if (!userid || !blockid)
     return res.status(400).send({
-      errmsg: "UserID and blockID are required",
+      errmsg: "userid and blockid are required",
     });
 
-  if (userID === blockID)
+  if (userid === blockid)
     return res.status(400).send({
       errmsg: "User cannot block themselves",
     });
@@ -22,36 +22,39 @@ router.post("/", async (req, res) => {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+        userid: blockid,
       },
     };
 
-    fetch( `http://localhost:${process.env.PORT}/User?userID=${blockID}`, fetchOptions)
+    fetch( `http://localhost:${process.env.PORT}/User`, fetchOptions)
     .then((response) => response.json())
-    .then((body) => {
-        if (!body.user)
-            throw new Error("User not found");
+    .then((blocked_body) => {
+        if (!blocked_body.user)
+            throw new Error("Blocked user not found");
 
-        fetch(`http://localhost:${process.env.PORT}/Blocked?userID=${userID}`, fetchOptions)
+        fetchOptions.headers.userid = userid;
+
+        fetch(`http://localhost:${process.env.PORT}/Blocked`, fetchOptions)
         .then((response) => response.json())
         .then((body) => {
             if (!body.blockedlist) 
                 throw new Error("User not found");
 
-            if (body.blockedlist.includes(blockID)) return;
+            if (body.blockedlist.includes(blockid)) return;
 
-            users.updateOne({ "spotify_info.id": userID },{ $push: { blocked_list: blockID }});
-        }).catch((error) => {
-            console.error("Error fetching user:", error);
-            return res.status(404).send({
-                errmsg: error.message || "An error occurred",
-            });
-        });
+            users.updateOne({ "spotify_info.id": userid },{ $push: { blocked_list: blockid }});
+
+        })
     }).catch((error) => {
         console.error("Error fetching user:", error);
         return res.status(404).json({
             errmsg: error.message || "An error occurred",
         });
     });
+
+    if (res.headersSent) return;
+
+    res.status(200).send("User blocked successfully");
 
 });
 

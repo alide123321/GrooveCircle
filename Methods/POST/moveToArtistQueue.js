@@ -4,12 +4,12 @@ const { database } = require('../../dbClient');
 
 // POST route for moving to artist match queue
 router.post('/', async (req, res) => {
-    const { userID, artist } = req.query;
+    const { userid, artistid } = req.headers;
 
-    // check if userID and artist are provided
-    if (!userID || !artist) 
+    // check if userid and artist are provided
+    if (!userid || !artistid) 
         return res.status(400).json({
-            errmsg: 'userID and blockID are required'
+            errmsg: 'userid and artistid are required'
         });
     
     try {
@@ -17,30 +17,30 @@ router.post('/', async (req, res) => {
 
         // check if user is already in queue with artist
         const existingEntry = await queues.findOne({
-            userID: userID,
-            artist: artist
+            userid: userid,
+            artist: artistid
         });
 
         // if user is already in queue, send error
         if (existingEntry) {
-            console.error(`User ${userID} is already in queue for artist ${artist}`);
+            console.error(`User ${userid} is already in queue for artist ${artistid}`);
             return res.status(400).json({
-                errmsg: `User ${userID} is already in queue for artist ${artist}`
+                errmsg: `User ${userid} is already in queue for artist ${artistid}`
             });
         }
 
         // add user to artist queue
         await queues.insertOne({
-            userID: userID,
-            artist: artist
+            userid: userid,
+            artist: artistid
         });
 
         // log add to queue
-        console.log(`user with ID ${userID} added to artist queue for artist ${artist}`);
+        console.log(`user with ID ${userid} added to artist queue for artist ${artistid}`);
 
         // send response
         res.status(200).json({
-            message: `user with ID ${userID} added to artist queue for artist ${artist}`
+            message: `user with ID ${userid} added to artist queue for artist ${artistid}`
         });
     } catch (error) {
         console.error('could not add user to artist queue', error);

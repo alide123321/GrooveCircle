@@ -6,11 +6,11 @@ router.use(express.json());
 
 // POST route for creating a chatroom
 router.post('/', (req, res) => {
-    const  userIDs  = req.body.userIDs;
+    const  userids  = req.headers;
 
-    if (!userIDs || !Array.isArray(userIDs)) 
+    if (!userids || !Array.isArray(userids)) 
         return res.status(400).json({
-            errmsg: 'userIDs is required and must be an array'
+            errmsg: 'userids is required and must be an array'
         });
     
 
@@ -18,7 +18,7 @@ router.post('/', (req, res) => {
 
     let chatroomID = 1234;
 
-    res.status(200).send(`Chatroom with ID ${chatroomID} created by user with ID ${userIDs.join(', ')}`);
+    res.status(200).send(`Chatroom with ID ${chatroomID} created by user with ID ${userids.join(', ')}`);
 });
 
 module.exports = router;

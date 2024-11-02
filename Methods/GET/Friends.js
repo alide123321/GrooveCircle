@@ -6,21 +6,22 @@ const app = express();
 app.use(express.json());
 
 router.get('/', (req, res) => {
-    const { userID } = req.query;
+    const { userid } = req.headers;
     
-    if (!userID) 
+    if (!userid) 
         return res.status(400).json({
-            errmsg: "UserID is required"
+            errmsg: "userid is required"
         });
 
     const fetchOptions = {
         method: "GET",
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            userid: userid
         },
     };
     
-    fetch(`http://localhost:${process.env.PORT}/User?userID=${userID}`, fetchOptions)
+    fetch(`http://localhost:${process.env.PORT}/User`, fetchOptions)
     .then(response => {
         if (response.status !== 200) {
             throw new Error(`HTTP error! status: ${response.status}`);

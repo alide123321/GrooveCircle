@@ -2,11 +2,11 @@ const express = require('express');
 const router = express.Router();
 
 router.get('/', (req, res) => {
-    const { userID } = req.query; 
+    const { userid } = req.headers; 
 
-    if (!userID) 
+    if (!userid) 
         return res.status(400).json({
-            errmsg: "UserID is required"
+            errmsg: "userid is required"
         });
 
         //call other services to get the matching details

@@ -6,14 +6,14 @@ const { database } = require('../../dbClient');
 // POST route for adding a friend
 router.post('/', async (req, res) => {
     const users = database.collection('users');
-    const { userID, friendID } = req.query;
+    const { userid, friendid } = req.headers;
 
-    if (!userID || !friendID)
+    if (!userid || !friendid)
         return res.status(400).send({
-            errmsg: "UserID and friendID are required"
+            errmsg: "userid and friendid are required"
         });
 
-    if (userID === friendID)
+    if (userid === friendid)
         return res.status(400).send({
             errmsg: "User cannot add themselves as a friend"
         }); 
@@ -21,53 +21,43 @@ router.post('/', async (req, res) => {
     let fetchOptions = {
         method: "GET",
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            userid: userid
         },
+        
     };
         
-    fetch(`http://localhost:${process.env.PORT}/Friends?userID=${userID}`, fetchOptions)
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
+    fetch(`http://localhost:${process.env.PORT}/Friends`, fetchOptions)
+    .then(response => response.json())
     .then(body => {
         if(!body.friendsList)
             throw new Error("User not found");
             
-        if(body.friendsList.includes(friendID))
-            return;
 
-        fetch(`http://localhost:${process.env.PORT}/Friends?userID=${friendID}`, fetchOptions)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        }).then(body  => {
-            if(!body.friendsList)
+        fetchOptions.headers.userid = friendid;
+
+        fetch(`http://localhost:${process.env.PORT}/Friends`, fetchOptions)
+        .then(response => response.json())
+        .then(friend_body  => {
+            if(!friend_body.friendsList)
                 throw new Error("Friend not found");
+
+            if(!body.friendsList.includes(friendid))
+                users.updateOne({"spotify_info.id" : userid }, { $push: { friends_list: friendid } });
             
-            if(body.friendsList.includes(userID))
-                return;
-    
-            users.updateOne({"spotify_info.id" : userID }, { $push: { friends_list: friendID } });
-            users.updateOne({"spotify_info.id" : friendID }, { $push: { friends_list: userID } });
-            res.status(200).send(`User with ID \'${userID}\' added \'${friendID}\' as a friend`);
-        }).catch(error => {
-            console.error("Error fetching user:", error);
-            res.status(404).send({
-                errmsg: "Error fetching user: \n" + error
-            });
-        });
+            if(!friend_body.friendsList.includes(userid))
+                users.updateOne({"spotify_info.id" : friendid }, { $push: { friends_list: userid } });
             
+        })
     }).catch(error => {
         console.error("Error fetching user:", error);
         res.status(404).send({
             errmsg: "Error fetching user: \n" + error
         });
     });
+
+    if(res.headersSent) return;
+    res.status(200).send(`User with ID \'${userid}\' added \'${friendid}\' as a friend`);
 
 });
 

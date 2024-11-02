@@ -6,14 +6,14 @@ const { database } = require("../../dbClient");
 // POST route for adding a friend
 router.post("/", async (req, res) => {
     const users = database.collection("users");
-    const { userID, friendID } = req.query;
+    const { userid, friendid } = req.headers;
 
-    if (!userID || !friendID)
+    if (!userid || !friendid)
         return res.status(400).send({
-            errmsg: "UserID and friendID are required",
+            errmsg: "userid and friendid are required",
         });
 
-    if (userID === friendID)
+    if (userid === friendid)
         return res.status(400).send({
             errmsg: "User cannot add themselves as a friend",
         });
@@ -22,42 +22,35 @@ router.post("/", async (req, res) => {
         method: "GET",
         headers: {
         "Content-Type": "application/json",
+        userid: userid,
         },
     };
 
-    fetch(`http://localhost:${process.env.PORT}/Friends?userID=${userID}`,fetchOptions)
+    fetch(`http://localhost:${process.env.PORT}/Friends`,fetchOptions)
     .then((response) => response.json())
     .then((body) => {
       if (!body.friendsList) throw new Error("User not found");
 
-      users.updateOne({"spotify_info.id": userID}, {$pull: {friends_list: friendID}});
-    })
-    .catch((error) => {
+      users.updateOne({"spotify_info.id": userid}, {$pull: {friends_list: friendid}});
+
+      fetchOptions.headers.userid = friendid;
+
+      fetch(`http://localhost:${process.env.PORT}/Friends`, fetchOptions)
+      .then((response) => response.json())
+      .then((body) => {
+        if (!body.friendsList) throw new Error("Friend not found");
+
+        users.updateOne({"spotify_info.id": friendid}, {$pull: {friends_list: userid}});
+      })
+    }).catch((error) => {
       console.error("Error fetching user:", error);
       return res.status(404).send({
         errmsg: error.message || "An error occurred",
       });
     });
 
-    if (res.headersSent) return;
-
-    fetch(`http://localhost:${process.env.PORT}/Friends?userID=${friendID}`, fetchOptions)
-    .then((response) => response.json())
-    .then((body) => {
-      if (!body.friendsList) throw new Error("Friend not found");
-
-      users.updateOne({"spotify_info.id": friendID}, {$pull: {friends_list: userID}});
-    })
-    .catch((error) => {
-      console.error("Error fetching user:", error);
-      return res.status(404).send({
-        errmsg: error,
-      });
-    });
-
   if (res.headersSent) return;
-
-  res.status(200).send(`User with ID \'${userID}\' removed \'${friendID}\' as a friend`);
+  res.status(200).send(`User with ID \'${userid}\' removed \'${friendid}\' as a friend`);
 });
 
 module.exports = router;

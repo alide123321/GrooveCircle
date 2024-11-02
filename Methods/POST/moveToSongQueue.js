@@ -4,12 +4,12 @@ const { database } = require('../../dbClient');
 
 // POST route for moving to song match queue
 router.post('/', async (req, res) => {
-    const { userID, songID } = req.query;
+    const { userid, songid } = req.headers;
 
-    // check if userID and songID are provided
-    if (!userID || !songID) {
+    // check if userid and songid are provided
+    if (!userid || !songid) {
         return res.status(400).json({
-            errmsg: 'userID and songID are required'
+            errmsg: 'userid and songid are required'
         });
     }
 
@@ -18,29 +18,29 @@ router.post('/', async (req, res) => {
 
         // Check if user is already in queue with song
         const existingEntry = await queues.findOne({ 
-            userID: userID,
-            songID: songID 
+            userid: userid,
+            songid: songid 
         });
 
         // if user is already in queue, send error
         if (existingEntry) {
-            console.error(`User ${userID} is already in queue for song ${songID}`);
+            console.error(`User ${userid} is already in queue for song ${songid}`);
             return res.status(400).json({
-                errmsg: `User ${userID} is already in queue for song ${songID}`
+                errmsg: `User ${userid} is already in queue for song ${songid}`
             });
         }
 
         // Add user to song queue
         await queues.insertOne({
-            userID: userID,
-            songID: songID
+            userid: userid,
+            songid: songid
         });
         // log add to queue 
-        console.log(`user with ID ${userID} added to song queue for song ${songID}`);
+        console.log(`user with ID ${userid} added to song queue for song ${songid}`);
 
         // send response
         res.status(200).json({
-            message: `user with ID ${userID} added to song queue for song ${songID}`
+            message: `user with ID ${userid} added to song queue for song ${songid}`
         });
 
     } catch (error) {

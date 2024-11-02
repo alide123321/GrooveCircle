@@ -6,33 +6,33 @@ const { database } = require("../../dbClient");
 // POST route for blocking a user
 router.post("/", async (req, res) => {
   const users = database.collection("users");
-  const { userID, blockedID } = req.query;
+  const { userid, blockedid } = req.headers;
 
-  if (!userID || !blockedID)
+  if (!userid || !blockedid)
     return res.status(400).send({
-      errmsg: "userID and blockedID are required",
+      errmsg: "userid and blockedid are required",
     });
 
-  if (userID === blockedID)
+  if (userid === blockedid)
     return res.status(400).send({
       errmsg: "User cannot unblock themselves",
     });
 
-  try {
     let fetchOptions = {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+        userid: userid,
       },
     };
 
-    fetch(`http://localhost:${process.env.PORT}/Blocked?userID=${userID}`, fetchOptions)
+    fetch(`http://localhost:${process.env.PORT}/Blocked`, fetchOptions)
     .then((response) => response.json())
     .then((body) => {
         if (!body.blockedlist) 
             throw new Error("User not found");
 
-        users.updateOne({ "spotify_info.id": userID },{ $pull: { blocked_list: blockedID }});
+        users.updateOne({ "spotify_info.id": userid },{ $pull: { blocked_list: blockedid }});
     }).catch((error) => {
         console.error("Error fetching user:", error);
         return res.status(404).send({
@@ -42,11 +42,7 @@ router.post("/", async (req, res) => {
 
     if (res.headersSent) return;
 
-    res.status(200).send(`User with ID \'${userID}\' unblocked user with ID \'${blockedID}\'`);
-  } catch (error) {
-    console.error("Error processing request:", error);
-    res.status(500).send("Error processing request");
-  }
+    res.status(200).send(`User with ID \'${userid}\' unblocked user with ID \'${blockedid}\'`);
 });
 
 module.exports = router;

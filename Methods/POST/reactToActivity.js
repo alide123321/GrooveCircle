@@ -3,14 +3,14 @@ const router = express.Router();
 
 // POST route for reacting to an activity
 router.post('/', (req, res) => {
-    const { userID, activityID, emoji } = req.query;
+    const { userid, activityid, emoji } = req.headers;
 
-    if (!userID || !activityID || !emoji) 
+    if (!userid || !activityid || !emoji) 
             return res.status(400).json({
-                errmsg: 'userID, activityID, and emoji are required'
+                errmsg: 'userid, activityid, and emoji are required'
     });
 
-    res.status(200).send(`User with ID ${userID} reacted to activity ${activityID} with emoji ${emoji}`);
+    res.status(200).send(`User with ID ${userid} reacted to activity ${activityid} with emoji ${emoji}`);
 });
 
 module.exports = router;

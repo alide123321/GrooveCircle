@@ -16,6 +16,7 @@ router.post('/', (req, res) => {
         friends_list: [],
         message_list: [],
         blocked_list: [],
+        activitie_list: [],
         username: req.body.username,
         spotify_info: {
           id: req.body.id,
