@@ -3,11 +3,10 @@ const router = express.Router();
 const { database } = require('../../dbClient');
 
 router.delete('/', async (req, res) => {
-    console.log('Query params:', req.query); // log query params
-    const spotifyId = req.query.id; 
+    const { userid } = req.headers;
 
     // check if userID is provided
-    if (!spotifyId) {
+    if (!userid) {
         return res.status(400).json({
             errmsg: 'spotify Id is required'
         });
@@ -17,16 +16,16 @@ router.delete('/', async (req, res) => {
         const users = database.collection('users');
         
         // check if user exists 
-        const existingUser = await users.findOne({ 'spotify_info.id': spotifyId });
+        const existingUser = await users.findOne({ 'spotify_info.id': userid });
 
         if (!existingUser) {
             return res.status(400).json({
-                errmsg: `User with ID ${spotifyId} does not exist`
+                errmsg: `User with ID ${userid} does not exist`
             });
         }
 
         // delete user from database
-        await users.deleteOne({ 'spotify_info.id': spotifyId });
+        await users.deleteOne({ 'spotify_info.id': userid });
         // log deletion
         console.log(`User with username ${existingUser.username} deleted`);
 

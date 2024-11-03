@@ -4,12 +4,12 @@ const { database } = require("../../dbClient");
 
 // This is a DELETE request to remove a user from the song queue
 router.delete('/', async (req, res) => {
-    const { userID, songID } = req.query;
+    const { userid, songid } = req.headers;
 
-    // check if userID and songID are provided
-    if (!userID || !songID) {
+    // check if userid and songid are provided
+    if (!userid || !songid) {
         return res.status(400).json({
-            errmsg: 'userID and songID are required'
+            errmsg: 'userid and songid are required'
         });
     }
 
@@ -18,30 +18,30 @@ router.delete('/', async (req, res) => {
         
         // check if user is in queue with this song
         const existingEntry = await queues.findOne({
-            userID: userID,
-            songID: songID
+            userid: userid,
+            songid: songid
         });
 
         // if user is not in queue, send error 
         if (!existingEntry) {
-            console.error(`User ${userID} is not in queue for song ${songID}`);
+            console.error(`User ${userid} is not in queue for song ${songid}`);
             return res.status(400).json({
-                errmsg: `User ${userID} is not in queue for song ${songID}`
+                errmsg: `User ${userid} is not in queue for song ${songid}`
             });
         }
 
         // remove user from queue
         await queues.deleteOne({
-            userID: userID,
-            songID: songID
+            userid: userid,
+            songid: songid
         });
         
         // log remove from queue
-        console.log(`user with ID ${userID} removed from song queue for song ${songID}`);
+        console.log(`user with ID ${userid} removed from song queue for song ${songid}`);
 
         // send response
         res.status(200).json({
-            message: `User with ID ${userID} removed from song queue for song ${songID}`
+            message: `User with ID ${userid} removed from song queue for song ${songid}`
         });
     } catch (error) {
         console.error('could not remove user from song queue', error);

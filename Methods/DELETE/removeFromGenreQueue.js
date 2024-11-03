@@ -4,11 +4,11 @@ const { database } = require('../../dbClient');
 
 // DELETE route for moving user to genre queue
 router.delete('/', async (req, res) => {
-    const { userID, genre } = req.query;
+    const { userid, genre } = req.headers;
 
-    // check if userID and genre are provided
-    if (!userID || !genre) {
-        return res.status(400).send('userID and genre are required');
+    // check if userid and genre are provided
+    if (!userid || !genre) {
+        return res.status(400).send('userid and genre are required');
     }
     
     try {
@@ -16,30 +16,30 @@ router.delete('/', async (req, res) => {
 
         // check if user is in queue with genre
         const existingEntry = await queues.findOne({
-            userID: userID,
+            userid: userid,
             genre: genre
         });
 
         // if user is not in queue, send error
         if (!existingEntry) {
-            console.error(`User ${userID} is not in queue for genre ${genre}`);
+            console.error(`User ${userid} is not in queue for genre ${genre}`);
             return res.status(400).json({
-                errmsg: `User ${userID} is not in queue for genre ${genre}`
+                errmsg: `User ${userid} is not in queue for genre ${genre}`
             });
         }
 
         // remove user from genre queue
         await queues.deleteOne({
-            userID: userID,
+            userid: userid,
             genre: genre
         });
 
         // log remove from queue
-        console.log(`user with ID ${userID} removed from genre queue for genre ${genre}`);
+        console.log(`user with ID ${userid} removed from genre queue for genre ${genre}`);
 
         // send response
         res.status(200).json({
-            message: `user with ID ${userID} removed from genre queue for genre ${genre}`
+            message: `user with ID ${userid} removed from genre queue for genre ${genre}`
         });
     } catch (error) {
         console.error('could not remove user from genre queue', error);
