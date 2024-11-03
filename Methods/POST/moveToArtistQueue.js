@@ -1,24 +1,47 @@
 const express = require('express');
 const router = express.Router();
 const { database } = require('../../dbClient');
+const fetch = require('node-fetch');
 
 // POST route for moving to artist match queue
 router.post('/', async (req, res) => {
-    const { userid, artistid } = req.headers;
+    const { userid, artistid, songid } = req.headers;
 
     // check if userid and artist are provided
-    if (!userid || !artistid) 
+    if (!userid || !artistid || !songid) 
         return res.status(400).json({
-            errmsg: 'userid and artistid are required'
+            errmsg: 'userid, artistid, and songid are required'
         });
     
     try {
+        // remove from song
+        const removeOptions = {
+            method: 'DELETE',
+            headers: {
+                userid: userid,
+                songid: songid
+            }
+        };
+
+        // call removeFromSongQueue
+        const removeFromSongQueue = await fetch(`http://localhost:${process.env.PORT}/removeFromSongQueue`, removeOptions);
+        const removeResult = await removeFromSongQueue.json();
+
+        if (!removeFromSongQueue.ok) {
+            console.error(`Failed to remove user ${userid} from song queue for song ${songid}`);
+            throw new Error(removeResult.errmsg || 'Failed to remove from song queue');
+        }
+        
+        // log remove from song queue
+        console.log(`User ${userid} removed from song queue for song ${songid}`);
+
+        // add to artist queue
         const queues = database.collection('artistQueue');
 
         // check if user is already in queue with artist
         const existingEntry = await queues.findOne({
             userid: userid,
-            artist: artistid
+            artistid: artistid
         });
 
         // if user is already in queue, send error
@@ -32,7 +55,7 @@ router.post('/', async (req, res) => {
         // add user to artist queue
         await queues.insertOne({
             userid: userid,
-            artist: artistid
+            artistid: artistid
         });
 
         // log add to queue

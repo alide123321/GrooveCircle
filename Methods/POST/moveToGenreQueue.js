@@ -1,18 +1,41 @@
 const express = require('express');
 const router = express.Router();
 const { database } = require('../../dbClient');
+const fetch = require('node-fetch');
 
 // POST route for moving to genre match queue
 router.post('/', async (req, res) => {
-    const { userid, genre } = req.headers;
+    const { userid, genre, artistid } = req.headers;
 
     // check if userid and genre are provided
-    if (!userid || !genre) 
+    if (!userid || !genre || !artistid) 
         return res.status(400).json({
-            errmsg: 'userid and genre are required'
+            errmsg: 'userid, genre, and artistid are required'
         });
 
     try {
+        // remove from artist queue
+        const removeOptions = {
+            method: 'DELETE',
+            headers: {
+                userid: userid,
+                artistid: artistid
+            }
+        };
+
+        // call removeFromArtistQueue
+        const removeFromArtistQueue = await fetch(`http://localhost:${process.env.PORT}/removeFromArtistQueue`, removeOptions);
+        const removeResult = await removeFromArtistQueue.json();
+
+        if (!removeFromArtistQueue.ok) {
+            console.error(`Failed to remove user ${userid} from artist queue for artist ${artistid}`);
+            throw new Error(removeResult.errmsg || 'Failed to remove from artist queue');
+        }
+
+        // log remove from artist queue
+        console.log(`User ${userid} removed from artist queue for artist ${artistid}`);
+
+        // add to genre queue   
         const queues = database.collection('genreQueue');
 
         // check if user is already in queue with genre

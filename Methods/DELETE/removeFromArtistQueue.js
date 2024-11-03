@@ -4,11 +4,13 @@ const { database } = require('../../dbClient');
 
 // DELETE route for moving user to genre queue
 router.delete('/', async (req, res) => {
-    const { userid, artist } = req.headers;
+    const { userid, artistid } = req.headers;
 
     // check if userid and artist are provided
-    if (!userid || !artist) {
-        return res.status(400).send('userid and artist are required');
+    if (!userid || !artistid) {
+        return res.status(400).json({
+            errmsg: 'userid and artistid are required'
+        });
     }
 
     try {
@@ -17,29 +19,29 @@ router.delete('/', async (req, res) => {
         // check if user is in queue with artist
         const existingEntry = await queues.findOne({
             userid: userid,
-            artist: artist
+            artistid: artistid
         });
 
         // if user is not in queue, send error
         if (!existingEntry) {
-            console.error(`User ${userid} is not in queue for artist ${artist}`);
+            console.error(`User ${userid} is not in queue for artistid ${artistid}`);
             return res.status(400).json({
-                errmsg: `User ${userid} is not in queue for artist ${artist}`
+                errmsg: `User ${userid} is not in queue for artistid ${artistid}`
             });
         }
 
         // remove user from artist queue
         await queues.deleteOne({
             userid: userid,
-            artist: artist
+            artistid: artistid
         });
 
         // log remove from queue
-        console.log(`user with ID ${userid} removed from artist queue for artist ${artist}`);
+        console.log(`user with ID ${userid} removed from artist queue for artistid ${artistid}`);
 
         // send response
         res.status(200).json({
-            message: `user with ID ${userid} removed from artist queue for artist ${artist}`
+            message: `user with ID ${userid} removed from artist queue for artistid ${artistid}`
         });
     } catch (error) {
         console.error('could not remove user from artist queue', error);
