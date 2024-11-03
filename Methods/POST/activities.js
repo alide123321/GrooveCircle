@@ -11,7 +11,7 @@ router.post('/', async (req, res) => {
         const activitys = database.collection('activitys');
         await activitys.insertOne({
             message: req.body.message,
-            user_id: req.body.user_id,
+            userid: req.body.userid,
             activity_type: req.body.activity_type,
             timestamp: req.body.timestamp,
             reactions: [],
