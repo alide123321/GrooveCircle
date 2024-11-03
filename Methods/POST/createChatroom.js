@@ -1,24 +1,53 @@
 const express = require('express');
 const router = express.Router();
+const { database } = require('../../dbClient');
 
-// Middleware to parse JSON
 router.use(express.json());
 
-// POST route for creating a chatroom
-router.post('/', (req, res) => {
-    const  userids  = req.headers;
+router.post('/', async (req, res) => {
+    // Collect user IDs from headers
+    const userIds = [];
+    for (let i = 1; i <= 5; i++) {
+        if (req.headers[`userid${i}`]) {
+            userIds.push(req.headers[`userid${i}`]);
+        }
+    }
 
-    if (!userids || !Array.isArray(userids)) 
+    // Check if exactly 5 user IDs are provided
+    if (userIds.length !== 5) {
         return res.status(400).json({
-            errmsg: 'userids is required and must be an array'
+            errmsg: 'Five user IDs are required in the headers.'
         });
-    
+    }
 
-    // Create a new chatroom with the given user IDs and return the ID from the database
+    try {
+        const usersCollection = database.collection('users');
+        const chatroomsCollection = database.collection('chatrooms');
 
-    let chatroomID = 1234;
+        // Verify each user ID exists in the database
+        const users = await usersCollection.find({ "spotify_info.id": { $in: userIds } }).toArray();
+        if (users.length !== userIds.length) {
+            return res.status(404).json({
+                errmsg: 'One or more user IDs are not registered in the database.'
+            });
+        }
 
-    res.status(200).send(`Chatroom with ID ${chatroomID} created by user with ID ${userids.join(', ')}`);
+        // Create a new chatroom with verified user IDs
+        const chatroom = {
+            participants: userIds,
+            created_at: new Date()
+        };
+        const result = await chatroomsCollection.insertOne(chatroom);
+
+        res.status(200).json({
+            message: `Chatroom created successfully.`,
+            chatroomID: result.insertedId,
+            participants: userIds
+        });
+    } catch (error) {
+        console.error("Error creating chatroom:", error);
+        res.status(500).json({ errmsg: 'Error creating chatroom' });
+    }
 });
 
 module.exports = router;
