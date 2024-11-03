@@ -33,7 +33,10 @@ router.post('/', (req, res) => {
             throw new Error('User is not friends with friendid');
 
         let messageToInsert = {
-            messages: [messageContent],
+            messages: [{
+                message: messageContent, 
+                sender: userid
+            }],
             participants: [userid, friendid],
             Chatroom: false
         }
@@ -51,7 +54,10 @@ router.post('/', (req, res) => {
             messages.updateOne({$or: [
                 { participants: [userid, friendid] },
                 { participants: [friendid, userid] }
-            ]}, {$push: {messages: messageContent}});
+            ]}, {$push: {messages: {
+                message: messageContent, 
+                sender: userid
+            }}});
 
         } else {
 
