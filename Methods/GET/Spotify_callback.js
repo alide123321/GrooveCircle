@@ -63,8 +63,6 @@ router.get("/", (req, res) => {
                 .then(user => {
                   if (!user) {
 
-                    console.log("Creating user:", body.display_name);
-
                     const createuserOptions = {
                       method: "POST",
                       headers: {
