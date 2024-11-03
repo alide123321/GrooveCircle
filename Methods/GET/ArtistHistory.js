@@ -1,22 +1,45 @@
 const express = require('express');
+const fetch = require('node-fetch');
 const router = express.Router();
 
 router.get('/', (req, res) => {
-    const { userID } = req.query; 
+    const { userid, limit } = req.headers;
 
-    if (!userID) 
+    if (!userid) 
         return res.status(400).json({
-            errmsg: "UserID is required"
+            errmsg: "userid is required"
         });
 
-    const artistHistory = [
-        { artist: "Artist 1", listenedAt: "2024-10-04" },
-        { artist: "Artist 2", listenedAt: "2024-10-03" },
-        { artist: "Artist 3", listenedAt: "2024-10-01" },
-    ]
+    let fetchOptions = {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            userid: userid,
+            limit: limit
+        },
+    };
 
-    res.status(200).json({
-        artistHistory: artistHistory
+    fetch(`http://localhost:${process.env.PORT}/listeningHistory`, fetchOptions)
+    .then(response => response.json())
+    .then(body => {
+        if(!body || !body.length) 
+            throw new Error("No history found");
+
+        res.status(200).json({
+            artistHistory: body.tracks.map(function(obj) {
+                return {
+                    name: obj.track.artists[0].name,
+                    id: obj.track.artists[0].id
+                };
+            }),
+            length: body.length
+        });
+        
+    }).catch(error => {
+        console.error("Error fetching user:", error);
+        return res.status(404).json({
+            errmsg: error.message || "An error occurred"
+        });
     });
 });
 

@@ -16,6 +16,7 @@ app.use(session({
     saveUninitialized: true,
     cookie: { secure: false }
 }));
+app.use(express.json())
 
 app.use(express.static(path.join(__dirname, 'public')))
    .use(cors())

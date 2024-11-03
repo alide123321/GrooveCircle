@@ -8,9 +8,15 @@ const app = express();
 app.use(cookieParser());
 const router = express.Router();
 
-router.get("/", (req, res) => {
+router.get("/", async (req, res) => {
   const users = database.collection('users');
-  let refresh_token = req.query.refresh_token;
+  let {userid, refresh_token} = req.query;
+
+  if (!userid || !refresh_token) {
+    return res.status(400).json({
+      errmsg: "userid and refresh_token are required",
+    });
+  }
 
   const authOptions = {
     method: "POST",
