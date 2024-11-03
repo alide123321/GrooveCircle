@@ -5,7 +5,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const env = require('dotenv').config();
 const session = require('express-session');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion } = require('mongodb'); // Import MongoDB client
 
 const app = express();
 
@@ -16,8 +16,8 @@ app.use(session({
     saveUninitialized: true,
     cookie: { secure: false }
 }));
+app.use(express.json())
 
-app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')))
    .use(cors())
    .use(cookieParser());
@@ -34,17 +34,18 @@ const client = new MongoClient(uri, {
     }
 });
 
-async function connectMongoDB() {
+async function runMongoDB() {
     try {
         await client.connect();
-        const database = client.db('groovecircle');
-        app.set('database', database);
+        await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } catch (e) {  
         console.error("ERR", e);
+    } finally {
+        await client.close();
     }
 }
-connectMongoDB().catch(console.dir);
+runMongoDB().catch(console.dir);
 
 // Function to recursively get all files in a directory
 function getFiles(dir) {
@@ -70,7 +71,6 @@ files.forEach(file => {
     
     try {
         app.use(routePath, router);
-        console.log(`Registered route: ${routePath}`);
     } catch (error) {
         console.error(`Failed to use route ${routePath}: ${error}`);
     }
