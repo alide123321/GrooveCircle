@@ -1,70 +1,41 @@
 const express = require('express');
 const router = express.Router();
-const { database } = require('../../dbClient');
 const { ObjectId } = require('mongodb');
+const { database } = require('../../dbClient'); // Assuming you have a central MongoDB connection in dbClient.js
 
 router.use(express.json());
 
-// POST route for sending a message to a group chat
+// POST route for sending a message to a group chatroom
 router.post('/', async (req, res) => {
     const { userid, chatroomid } = req.headers;
     const { messageContent } = req.body;
 
+    // Validate required parameters
     if (!userid || !chatroomid || !messageContent) {
-        return res.status(400).json({
-            errmsg: 'userid, chatroomid, and messageContent are required'
-        });
-    }
-
-    // Validate chatroomid format
-    if (!ObjectId.isValid(chatroomid)) {
-        return res.status(400).json({
-            errmsg: 'Invalid chatroomid format. Must be a 24-character hex string'
-        });
+        return res.status(400).json({ errmsg: 'userid, chatroomid, and messageContent are required' });
     }
 
     try {
-        const chatrooms = database.collection('chatrooms');
-
-        // Convert chatroomid to ObjectId
-        const chatroomObjectId = new ObjectId(chatroomid);
-
-        // Check if chatroom exists and is marked as a group chat
-        const chatroom = await chatrooms.findOne({ _id: chatroomObjectId, Chatroom: true });
-
-        if (!chatroom) {
-            return res.status(404).json({
-                errmsg: 'Chatroom not found or not a group chat'
-            });
-        }
-
-        // Ensure the user is part of the chatroom
-        if (!chatroom.participants.includes(userid)) {
-            return res.status(403).json({
-                errmsg: 'User is not a participant of the chatroom'
-            });
-        }
-
-        // Insert message into the messages collection
-        const messages = database.collection('messages');
-        const newMessage = {
-            chatroomid: chatroomObjectId,
-            userid,
-            messageContent,
-            timestamp: new Date()
-        };
+        // Convert chatroomid to ObjectId and find the chatroom in MongoDB
+        const chatroom = await database.collection('chatrooms').findOne({ _id: new ObjectId(chatroomid) });
         
-        await messages.insertOne(newMessage);
+        // Check if the chatroom exists and the user is a participant
+        if (!chatroom || !chatroom.participants.includes(userid)) {
+            return res.status(404).json({ errmsg: "Chatroom not found or user not part of the group chat" });
+        }
 
-        res.status(200).json({
-            message: 'Message sent successfully',
-            data: newMessage
+        // Insert the message into the messages collection with the relevant details
+        await database.collection('messages').insertOne({
+            chatroom_id: new ObjectId(chatroomid),
+            sender: userid,
+            content: messageContent,
+            timestamp: new Date()
         });
+
+        res.status(200).json({ message: "Message sent successfully" });
     } catch (error) {
-        console.error('Error sending message to group:', error);
-        res.status(500).json({
-            errmsg: 'Error sending message'
-        });
+        console.error("Error sending message to group:", error);
+        res.status(500).json({ errmsg: "Internal server error" });
     }
 });
 
