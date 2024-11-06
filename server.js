@@ -6,6 +6,7 @@ const cookieParser = require('cookie-parser');
 const env = require('dotenv').config();
 const session = require('express-session');
 const { MongoClient, ServerApiVersion } = require('mongodb'); // Import MongoDB client
+const methodsPath = path.join(__dirname, 'Methods');
 
 const app = express();
 
@@ -21,8 +22,6 @@ app.use(express.json())
 app.use(express.static(path.join(__dirname, 'public')))
    .use(cors())
    .use(cookieParser());
-
-const methodsPath = path.join(__dirname, 'Methods');
 
 // MongoDB client setup
 const uri = `mongodb+srv://${encodeURIComponent(process.env.MONGO_DB_USER)}:${encodeURIComponent(process.env.MONGO_DB_PASSWORD)}@testcluster1.yoy0t.mongodb.net/?retryWrites=true&w=majority&appName=testCluster1`;
@@ -78,7 +77,7 @@ files.forEach(file => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Server is running on ${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
 });
 
 module.exports = app;
