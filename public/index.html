@@ -15,25 +15,24 @@
       }
 
       body {
-        min-height: 100vh; 
-        margin: 0; 
+        min-height: 100vh;
+        margin: 0;
         display: flex;
         justify-content: center;
         align-items: center;
-        background-color: #f5f5f5;
+        background-color: #1e1e1e; /* Dark background */
+        color: #ffffff; /* White text */
       }
 
       .container {
         text-align: center;
-        max-width: 500px;
-        min-height: 600px;
-        max-height: 90vh;
+        max-width: 700px;
+        min-height: 700px;
         margin: auto;
         padding: 20px;
-        overflow-y: auto;
-        background-color: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        background-color: #2c2c2c; /* Slightly lighter dark background */
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
       }
 
       .container::-webkit-scrollbar {
@@ -55,36 +54,69 @@
       }
 
       .logo {
-        width: 50px;
-        height: 50px;
-        height: auto;
-        margin-bottom: 10px;
+        width: 80px;
+        height: 80px;
+        margin-bottom: 15px;
       }
 
-      
+      #logout-button {
+        margin-top: 20px;
+        width: calc(100% - 40px); /* Aligned with the container */
+        padding: 10px;
+        background-color: #e84118; /* Red logout button */
+        color: #ffffff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      #logout-button:hover {
+        background-color: #c23616; /* Darker red */
+      }
+
+      .section-title {
+        color: #27ae60; /* Spotify green */
+        margin-bottom: 20px;
+      }
+
+      .oauth-container {
+        background-color: #1c1c1c; /* Darker background for OAuth section */
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 20px;
+      }
+
+      .btn-primary {
+        background-color: #27ae60; /* Spotify green */
+        border-color: #27ae60;
+      }
+
+      .btn-primary:hover {
+        background-color: #1f8b4c; /* Darker green */
+      }
     </style>
   </head>
 
   <body>
     <div class="container">
       <div id="login">
-        <img src="../images/LogoDemo1.svg" alt="GrooveCircle Logo" class="logo"/>
+        <img src="../images/LogoDemo1.svg" alt="GrooveCircle Logo" class="logo" />
         <h1>GrooveCircle</h1>
         <a href="/login" class="btn btn-primary">Log in with Spotify</a>
       </div>
       <div id="loggedin">
-        <div id="user-profile">
-        </div>
-        <div id="oauth">
-        </div>
+        <div id="user-profile"></div>
+        <div id="oauth"></div>
         <!-- Button to obtain a new token using the refresh token -->
-        <button class="btn btn-default" id="obtain-new-token">Obtain new token using the refresh token</button>
+        <button id="obtain-new-token" class="btn btn-success">Obtain new token using the refresh token</button>
+        <!-- Logout button -->
+        <button id="logout-button">Logout</button>
       </div>
     </div>
 
     <!-- Handlebars template for displaying user profile information -->
     <script id="user-profile-template" type="text/x-handlebars-template">
-      <h1>Logged in as {{display_name}}</h1>
+      <h1>Welcome, {{display_name}}</h1>
       <div class="media">
         <div class="pull-left">
           <!-- User profile image -->
@@ -92,35 +124,32 @@
         </div>
         <div class="media-body">
           <dl class="dl-horizontal">
-            <dt>Display name</dt><dd class="clearfix">{{display_name}}</dd>
+            <dt>Display Name</dt><dd class="clearfix">{{display_name}}</dd>
             <dt>Id</dt><dd>{{id}}</dd>
             <dt>Email</dt><dd>{{email}}</dd>
             <dt>Spotify URI</dt><dd><a href="{{external_urls.spotify}}">{{external_urls.spotify}}</a></dd>
             <dt>Link</dt><dd><a href="{{href}}">{{href}}</a></dd>
-            <dt>Profile Image</dt><dd class="clearfix"><a href="{{images.0.url}}">{{images.0.url}}</a></dd>
             <dt>Country</dt><dd>{{country}}</dd>
           </dl>
         </div>
       </div>
     </script>
-    
-    <!-- Logout button, initially hidden -->
-    <button id="logout-button" style="display: none;">Logout</button>
 
     <!-- Handlebars template for displaying OAuth information -->
     <script id="oauth-template" type="text/x-handlebars-template">
-      <h2>oAuth info</h2>
-      <dl class="dl-horizontal">
-        <dt>Access token</dt><dd class="text-overflow">{{access_token}}</dd>
-        <dt>Refresh token</dt><dd class="text-overflow">{{refresh_token}}</dd>
-      </dl>
+      <div class="oauth-container">
+        <h2 class="section-title">OAuth Information</h2>
+        <dl class="dl-horizontal">
+          <dt>Access Token</dt><dd class="text-overflow">{{access_token}}</dd>
+          <dt>Refresh Token</dt><dd class="text-overflow">{{refresh_token}}</dd>
+        </dl>
+      </div>
     </script>
 
     <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.1/handlebars.min.js"></script>
     <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
     <script>
       (function() {
-
         /**
          * Obtains parameters from the hash of the URL
          * @return Object
@@ -129,17 +158,17 @@
           var hashParams = {};
           var e, r = /([^&;=]+)=?([^&;]*)/g,
               q = window.location.hash.substring(1);
-          while ( e = r.exec(q)) {
-             hashParams[e[1]] = decodeURIComponent(e[2]);
+          while (e = r.exec(q)) {
+            hashParams[e[1]] = decodeURIComponent(e[2]);
           }
           return hashParams;
         }
 
         // Get cookie by name
         function getCookie(name) {
-            let value = "; " + document.cookie;
-            let parts = value.split("; " + name + "=");
-            if (parts.length === 2) return parts.pop().split(";").shift();
+          let value = "; " + document.cookie;
+          let parts = value.split("; " + name + "=");
+          if (parts.length === 2) return parts.pop().split(";").shift();
         }
 
         var userProfileSource = document.getElementById('user-profile-template').innerHTML,
@@ -157,51 +186,51 @@
             error = params.error;
 
         if (error) {
-          console.log("authentication error?", error);
+          console.log("Authentication error?", error);
           alert('There was an error during the authentication');
         } else {
           if (access_token) {
-            console.log('User is logged in'); 
-            // render oauth info
+            console.log('User is logged in');
+            // Render OAuth info
             oauthPlaceholder.innerHTML = oauthTemplate({
               access_token: access_token,
               refresh_token: refresh_token
             });
 
             $.ajax({
-                url: 'https://api.spotify.com/v1/me',
-                headers: {
-                  'Authorization': 'Bearer ' + access_token
-                },
-                success: function(response) {
-                  userProfilePlaceholder.innerHTML = userProfileTemplate(response);
+              url: 'https://api.spotify.com/v1/me',
+              headers: {
+                'Authorization': 'Bearer ' + access_token
+              },
+              success: function(response) {
+                userProfilePlaceholder.innerHTML = userProfileTemplate(response);
 
-                  $('#login').hide();
-                  $('#loggedin').show();
-                  $('#logout-button').show(); 
-                }
+                $('#login').hide();
+                $('#loggedin').show();
+                $('#logout-button').show();
+              }
             });
           } else {
-              console.log('No user loggin in');
-              // render initial screen
-              $('#login').show();
-              $('#loggedin').hide();
-              $('#logout-button').hide() 
+            console.log('No user logged in');
+            // Render initial screen
+            $('#login').show();
+            $('#loggedin').hide();
+            $('#logout-button').hide();
           }
 
           document.getElementById('logout-button').addEventListener('click', () => {
             fetch('/logout', {
-                method: 'POST',
-                credentials: 'include'
+              method: 'POST',
+              credentials: 'include'
             }).then(response => {
-                if (response.ok) {
-                  // reloads the page
-                  location.reload();
-                } else {
-                    alert('Logout failed');
-                }
+              if (response.ok) {
+                // Reloads the page
+                location.reload();
+              } else {
+                alert('Logout failed');
+              }
             });
-        });
+          });
 
           document.getElementById('obtain-new-token').addEventListener('click', function() {
             $.ajax({
