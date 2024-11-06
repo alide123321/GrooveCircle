@@ -30,14 +30,13 @@ router.get('/', (req, res) => {
                 Authorization: `Bearer ${body.user.spotify_info.access_token}`
             }
         };
-    
+
+        
         fetch("https://api.spotify.com/v1/me/player/currently-playing", authOptions)
         .then(response => response.json())
         .then(body => {
-            if(body.is_playing === false)
-                return res.status(200).json({
-                    isPlaying: false
-                });
+            if(!body || !body.is_playing)
+                throw new Error("User is not currently listening to music");
     
             const currentListeningTo = {
                 songName: body.item.name,
@@ -61,11 +60,10 @@ router.get('/', (req, res) => {
     .catch(error => {
         console.error("Error fetching user:", error);
         return res.status(404).json({
+            isPlaying: false,
             errmsg: error.message || "An error occurred"
         });
     });
-
-    
 });
 
 module.exports = router;
