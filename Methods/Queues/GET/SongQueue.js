@@ -4,10 +4,10 @@ const { database } = require('../../../dbClient');
 
 // GET route for moving to song match queue
 router.get('/', async (req, res) => {
-	const { userid, songid } = req.headers;
+	const { songid } = req.headers;
 
 	// check if userid and songid are provided
-	if (!userid || !songid) {
+	if (!songid) {
 		return res.status(400).json({
 			errmsg: 'userid and songid are required',
 		});
@@ -15,10 +15,12 @@ router.get('/', async (req, res) => {
 
 	const queues = database.collection('songQueue');
 
-	await queues.updateOne({ songID: artistid }, { $pull: { userids: userid } });
+	// Check if song is already in queue
+	const existingEntry = await queues.findOne({ songID: songid });
 
+	// send response
 	res.status(200).json({
-		message: `user with ID ${userid} removed from artist queue for artist ${artistid}`,
+		queue: existingEntry,
 	});
 });
 
