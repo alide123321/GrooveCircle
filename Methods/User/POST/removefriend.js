@@ -3,8 +3,8 @@ const fetch = require("node-fetch");
 const router = express.Router();
 const { database } = require("../../../dbClient");
 
-// POST route for adding a friend
-router.post("/", async (req, res) => {
+// delete route for removing a friend
+router.delete("/", async (req, res) => {
     const users = database.collection("users");
     const { userid, friendid } = req.headers;
 
