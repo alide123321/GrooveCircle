@@ -36,7 +36,7 @@ router.get('/', (req, res) => {
         .then(response => response.json())
         .then(body => {
             if(!body || !body.is_playing)
-                throw new Error("User is not currently listening to music");
+                throw new Error("No song is currently playing");
     
             const currentListeningTo = {
                 songName: body.item.name,
@@ -55,9 +55,14 @@ router.get('/', (req, res) => {
             return res.status(200).json({
                 currentListeningTo: currentListeningTo
             });
-        })
-    })
-    .catch(error => {
+        }).catch(error => {
+            console.error("Error fetching current listening to:", error);
+            return res.status(404).json({
+                isPlaying: false,
+                errmsg: error.message || "An error occurred"
+            });
+        });
+    }).catch(error => {
         console.error("Error fetching user:", error);
         return res.status(404).json({
             isPlaying: false,
