@@ -1,10 +1,6 @@
 {
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "server": "node server.js"
+    "start": "node server.js"
   },  
   "dependencies": {
     "connect-mongo": "^5.1.0",
