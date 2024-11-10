@@ -35,7 +35,7 @@ async function requireAuth(req, res, next) {
                 switch (spotifyError.response.status) {
                     case 401:
                         console.log('Token expired or invalid');
-                        // Could trigger token refresh here if needed
+                        
                         return res.redirect('/');
                     case 403:
                         console.log('Insufficient permissions');
