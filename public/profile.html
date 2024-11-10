@@ -73,6 +73,7 @@
         function loadProfileData() {
             const access_token = getCookie('access_token');
             const refresh_token = getCookie('refresh_token');
+            const userid = getCookie('spotify_id');
 
             var userProfileSource = document.getElementById('user-profile-template').innerHTML,
                 userProfileTemplate = Handlebars.compile(userProfileSource),
@@ -117,6 +118,7 @@
                 $.ajax({
                     url: '/refresh_token',
                     data: {
+                        'userid': userid,
                         'refresh_token': refresh_token
                     }
                 }).done(function(data) {
