@@ -72,7 +72,7 @@ body {
 }
 
 /* Post-login pages specific */
-.authenticated-page {
+.page {
     margin-top: 80px; /* Space for navbar */
     padding: 20px;
 }
