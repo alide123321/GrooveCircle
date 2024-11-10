@@ -35,8 +35,6 @@ router.get('/', (req, res) => {
 				.then((body) => {
 					if (!body || !body.is_playing) throw new Error('No song is currently playing');
 
-					console.log(body);
-
 					const currentListeningTo = {
 						songName: body.item.name,
 						songId: body.item.id,
