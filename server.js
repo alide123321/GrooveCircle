@@ -20,8 +20,10 @@ app.use(session({
 app.use(express.json())
 
 app.use(express.static(path.join(__dirname, 'public')))
-   .use(cors())
-   .use(cookieParser());
+app.use('/css', express.static(path.join(__dirname, 'public/css')));
+app.use('/js', express.static(path.join(__dirname, 'public/js')));
+app.use(cors())
+app.use(cookieParser());
 
 // MongoDB client setup
 const uri = `mongodb+srv://${encodeURIComponent(process.env.MONGO_DB_USER)}:${encodeURIComponent(process.env.MONGO_DB_PASSWORD)}@testcluster1.yoy0t.mongodb.net/?retryWrites=true&w=majority&appName=testCluster1`;
