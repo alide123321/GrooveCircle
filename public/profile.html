@@ -5,7 +5,8 @@
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="/css/shared.css">
 </head>
-<body class="authenticated-page">
+<body class="page">
+    <!-- Navigation bar -->
     <div id="nav-bar" class="nav-bar">
         <a href="/groove" class="nav-link">Groove</a>
         <a href="/home" class="nav-link">Home</a>
@@ -14,6 +15,7 @@
         <a href="/profile" class="nav-link">Profile</a>
     </div>
 
+    <!-- Container for profile information -->
     <div class="container">
         <div id="user-profile"></div>
         <div id="oauth"></div>
@@ -54,8 +56,11 @@
       </div>
     </script>
 
+    <!-- Handlebars and jQuery libraries -->
     <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.1/handlebars.min.js"></script>
     <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+
+    <!-- Shared JavaScript file, contains functions for authentication and profile data -->
     <script src="/js/shared.js"></script>
     <script>
         // Load profile data when page loads
@@ -68,6 +73,7 @@
         function loadProfileData() {
             const access_token = getCookie('access_token');
             const refresh_token = getCookie('refresh_token');
+            const userid = getCookie('spotify_id');
 
             var userProfileSource = document.getElementById('user-profile-template').innerHTML,
                 userProfileTemplate = Handlebars.compile(userProfileSource),
@@ -112,6 +118,7 @@
                 $.ajax({
                     url: '/refresh_token',
                     data: {
+                        'userid': userid,
                         'refresh_token': refresh_token
                     }
                 }).done(function(data) {
