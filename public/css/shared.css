@@ -40,7 +40,27 @@ body {
     border-radius: 10px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     text-align: center;
+    min-height: 700px;
     max-width: 700px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.text-overflow {
+    word-wrap: break-word;
+    word-break: break-all;
+    max-width: 100%;
+    white-space: normal;
+}
+
+.dl-horizontal dd {
+    margin-left: 180px;
+    margin-bottom: 10px;
+}
+
+.oauth-container {
+    padding-left: 20px;
+    margin: 20px 0;
 }
 
 /* Login page specific */
