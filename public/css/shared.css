@@ -29,8 +29,10 @@ body {
 }
 
 .nav-link:hover {
-    color: #27ae60;
+    background-color: #4006ed;
+    color: #ffffff;
     text-decoration: none;
+    border-radius: 10px;
 }
 
 /* Container styles */
@@ -85,10 +87,10 @@ body {
 }
 
 .btn-primary {
-    background-color: #27ae60;
-    border-color: #27ae60;
+    background-color: #4006ed;
+    border-color: #4006ed;
 }
 
 .btn-primary:hover {
-    background-color: #1f8b4c;
+    background-color: #4006ed;
 }
