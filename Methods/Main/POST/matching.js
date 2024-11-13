@@ -22,7 +22,7 @@ router.post('/', async (req, res) => {
 	};
 
 	let currSong = await fetch(`http://localhost:${process.env.PORT}/CurrentListingTo`, GetfetchOptions);
-	if (currSong.status !== 200) return res.status(404).send('issue with fetching current song');
+	if (!currSong.ok) return res.status(404).send('issue with fetching current song');
 	currSong = (await currSong.json()).currentListeningTo;
 
 	const PostfetchOptions = {
@@ -120,7 +120,7 @@ async function checkMatch(userid, state, currSong) {
 		},
 	};
 
-	const queueLength = 5; // in seconds
+	const queueLength = 60; // in seconds
 	const checkEvery = 5; // in seconds
 
 	for (let i = 0; i < queueLength; i += checkEvery) {
