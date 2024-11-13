@@ -35,7 +35,7 @@ router.post('/', async (req, res) => {
 			albumid: currSong.albumId,
 		},
 	};
-	const DeletefetchOptions = {
+	let DeletefetchOptions = {
 		method: 'DELETE',
 		headers: {
 			'Content-Type': 'application/json',
@@ -54,16 +54,11 @@ router.post('/', async (req, res) => {
 
 	async function matched(matchQueue) {
 		// Remove the queue from the database
-		const DeleteQueuefetchOptions = {
-			method: 'DELETE',
-			headers: {
-				'Content-Type': 'application/json',
-				state: state,
-				queueid: matchQueue._id,
-			},
-		};
 
-		fetch(`http://localhost:${process.env.PORT}/removeQueuefromDB`, DeleteQueuefetchOptions);
+		for (let i = 0; i < 5; i++) {
+			DeletefetchOptions.headers.userid = matchQueue.userids[i];
+			fetch(`http://localhost:${process.env.PORT}/removeFrom${state}Queue`, DeletefetchOptions);
+		}
 
 		// create Chatroom and return the chatroom id
 		const CreateChatroomfetchOptions = {
