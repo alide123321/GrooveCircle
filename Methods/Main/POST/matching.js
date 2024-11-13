@@ -47,7 +47,7 @@ router.post('/', async (req, res) => {
 	};
 
 	const addToQueueResponse = await fetch(`http://localhost:${process.env.PORT}/addToSongQueue`, PostfetchOptions);
-	if (addToQueueResponse.ok) {
+	if (!addToQueueResponse.ok) {
 		console.log(addToQueueResponse);
 		return res.status(404).send('issue with adding user to song queue');
 	}
@@ -60,7 +60,7 @@ router.post('/', async (req, res) => {
 	fetch(`http://localhost:${process.env.PORT}/removeFromSongQueue`, DeletefetchOptions);
 
 	addToQueueResponse = await fetch(`http://localhost:${process.env.PORT}/addToAlbumQueue`, PostfetchOptions);
-	if (addToQueueResponse.ok) {
+	if (!addToQueueResponse.ok) {
 		console.log(addToQueueResponse);
 		return res.status(404).send('issue with adding user to album queue');
 	}
@@ -73,7 +73,7 @@ router.post('/', async (req, res) => {
 	fetch(`http://localhost:${process.env.PORT}/removeFromAlbumQueue`, DeletefetchOptions);
 
 	addToQueueResponse = await fetch(`http://localhost:${process.env.PORT}/addToArtistQueue`, PostfetchOptions);
-	if (addToQueueResponse.ok) return res.status(404).send('issue with adding user to artist queue');
+	if (!addToQueueResponse.ok) return res.status(404).send('issue with adding user to artist queue');
 
 	while (!match) {
 		match = await checkMatch(userid, state, currSong);
