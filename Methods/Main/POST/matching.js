@@ -47,9 +47,12 @@ router.post('/', async (req, res) => {
 	};
 
 	const addToQueueResponse = await fetch(`http://localhost:${process.env.PORT}/addToSongQueue`, PostfetchOptions);
-	if (addToQueueResponse.status !== 200) return res.status(404).send('issue with adding user to song queue');
+	if (addToQueueResponse.ok) {
+		console.log(addToQueueResponse);
+		return res.status(404).send('issue with adding user to song queue');
+	}
 
-	let match = await checkMatch(userid, state);
+	let match = await checkMatch(userid, state, currSong);
 	if (match) return matched(match);
 
 	state = 'Album';
@@ -57,9 +60,12 @@ router.post('/', async (req, res) => {
 	fetch(`http://localhost:${process.env.PORT}/removeFromSongQueue`, DeletefetchOptions);
 
 	addToQueueResponse = await fetch(`http://localhost:${process.env.PORT}/addToAlbumQueue`, PostfetchOptions);
-	if (addToQueueResponse.status !== 200) return res.status(404).send('issue with adding user to song queue');
+	if (addToQueueResponse.ok) {
+		console.log(addToQueueResponse);
+		return res.status(404).send('issue with adding user to album queue');
+	}
 
-	match = await checkMatch(userid, state);
+	match = await checkMatch(userid, state, currSong);
 	if (match) return matched(match);
 
 	state = 'Artist';
@@ -67,10 +73,10 @@ router.post('/', async (req, res) => {
 	fetch(`http://localhost:${process.env.PORT}/removeFromAlbumQueue`, DeletefetchOptions);
 
 	addToQueueResponse = await fetch(`http://localhost:${process.env.PORT}/addToArtistQueue`, PostfetchOptions);
-	if (addToQueueResponse.status !== 200) return res.status(404).send('issue with adding user to song queue');
+	if (addToQueueResponse.ok) return res.status(404).send('issue with adding user to artist queue');
 
 	while (!match) {
-		match = await checkMatch(userid, state);
+		match = await checkMatch(userid, state, currSong);
 	}
 	matched(match);
 });
@@ -84,12 +90,15 @@ async function matched(queue) {
 	return;
 }
 
-async function checkMatch(userid, state) {
+async function checkMatch(userid, state, currSong) {
 	const fetchOptions = {
 		method: 'GET',
 		headers: {
 			'Content-Type': 'application/json',
-			userid,
+			userid: userid,
+			songid: currSong.songId,
+			artistid: currSong.artistId,
+			albumid: currSong.albumId,
 		},
 	};
 	let initalTime = new Date().getTime();
