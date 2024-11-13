@@ -53,7 +53,7 @@ router.post('/', async (req, res) => {
 	}
 
 	let match = await checkMatch(userid, state, currSong);
-	if (match) return matched(match);
+	if (match) return res.status(200).send({ msg: 'Match found', queue: matched(match, state) });
 
 	state = 'Album';
 
@@ -66,7 +66,7 @@ router.post('/', async (req, res) => {
 	}
 
 	match = await checkMatch(userid, state, currSong);
-	if (match) return matched(match);
+	if (match) return res.status(200).send({ msg: 'Match found', queue: matched(match, state) });
 
 	state = 'Artist';
 
@@ -78,16 +78,28 @@ router.post('/', async (req, res) => {
 	while (!match) {
 		match = await checkMatch(userid, state, currSong);
 	}
-	matched(match);
+
+	res.status(200).send({ msg: 'Match found', queue: matched(match, state) });
 });
 
-async function matched(queue) {
+async function matched(queue, state) {
 	//create chatroom and send response and other logic
+	const fetchOptions = {
+		method: 'GET',
+		headers: {
+			'Content-Type': 'application/json',
+			userid: userid,
+			songid: currSong.songId,
+			artistid: currSong.artistId,
+			albumid: currSong.albumId,
+		},
+	};
+
 	const Queue = await fetch(`http://localhost:${process.env.PORT}/${state}Queue`, fetchOptions).then((res) =>
 		res.json()
 	);
-	res.status(200).send({ msg: 'Match found', queue: new ObjectId(Queue) });
-	return;
+
+	return new ObjectId(Queue);
 }
 
 async function checkMatch(userid, state, currSong) {
