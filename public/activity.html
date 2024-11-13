@@ -16,9 +16,45 @@
 
     <div class="container">
         <h1>Activity</h1>
+        <!-- Button to post activity -->
+        <button id="post-activity" class="btn btn-primary">Post Activity</button>
+
+        <!-- Modal for posting activity -->
+        <div id="post-activity-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Post Activity</h2>
+                <textarea id="activity-text" placeholder="What's on your mind?" class="form-control"></textarea>
+                <button id="post-activity-button" class="btn btn-primary">Post</button>
+            </div>
+        </div>
+
     </div>
 
     <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
     <script src="/js/shared.js"></script>
+
+    <!-- Script for posting activity -->
+    <script>
+        $(document).ready(function() {
+            const modal = $("#post-activity-modal");
+            const btn = $("#post-activity");
+            const span = $(".close");
+
+            btn.on("click", function() {
+                modal.addClass("show");
+            });
+
+            span.click(function() {
+                modal.removeClass("show");
+            });
+
+            $(window).click(function(event) {
+                if (event.target === modal[0]) {
+                    modal.removeClass("show");
+                }
+            });
+        })
+    </script>
 </body>
 </html>
