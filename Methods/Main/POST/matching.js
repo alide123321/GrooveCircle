@@ -77,7 +77,10 @@ router.post('/', async (req, res) => {
 
 async function matched(queue) {
 	//create chatroom and send response and other logic
-	res.status(200).send('Match found');
+	const Queue = await fetch(`http://localhost:${process.env.PORT}/${state}Queue`, fetchOptions).then((res) =>
+		res.json()
+	);
+	res.status(200).send({ msg: 'Match found', queue: new ObjectId(Queue) });
 	return;
 }
 

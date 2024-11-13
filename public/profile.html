@@ -103,7 +103,7 @@
             // Add event listeners
             document.getElementById('logout-button').addEventListener('click', () => {
                 fetch('/logout', {
-                    method: 'POST',
+                    method: 'DELETE',
                     credentials: 'include'
                 }).then(response => {
                     if (response.ok) {
