@@ -53,7 +53,10 @@ router.post('/', async (req, res) => {
 	}
 
 	let match = await checkMatch(userid, state, currSong);
-	if (match) return res.status(200).send({ msg: 'Match found', queue: matched(match, state, userid, currSong) });
+	if (match)
+		return await res
+			.status(200)
+			.send({ msg: 'Match found', queueId: `${await matched(match, state, userid, currSong)}` });
 
 	state = 'Album';
 
@@ -66,7 +69,8 @@ router.post('/', async (req, res) => {
 	}
 
 	match = await checkMatch(userid, state, currSong);
-	if (match) return res.status(200).send({ msg: 'Match found', queue: matched(match, state, userid, currSong) });
+	if (match)
+		return res.status(200).send({ msg: 'Match found', queueId: `${await matched(match, state, userid, currSong)}` });
 
 	state = 'Artist';
 
@@ -79,7 +83,7 @@ router.post('/', async (req, res) => {
 		match = await checkMatch(userid, state, currSong);
 	}
 
-	res.status(200).send({ msg: 'Match found', queue: matched(match, state, userid, currSong) });
+	res.status(200).send({ msg: 'Match found', queueId: `${await matched(match, state, userid, currSong)}` });
 });
 
 async function matched(queue, state, userid, currSong) {
@@ -98,8 +102,8 @@ async function matched(queue, state, userid, currSong) {
 	const Queue = await fetch(`http://localhost:${process.env.PORT}/${state}Queue`, fetchOptions).then((res) =>
 		res.json()
 	);
-
-	return new ObjectId(Queue);
+	console.log(Queue.queue._id);
+	return Queue.queue._id;
 }
 
 async function checkMatch(userid, state, currSong) {
