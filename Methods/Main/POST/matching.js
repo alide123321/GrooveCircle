@@ -53,7 +53,7 @@ router.post('/', async (req, res) => {
 	}
 
 	let match = await checkMatch(userid, state, currSong);
-	if (match) return res.status(200).send({ msg: 'Match found', queue: matched(match, state) });
+	if (match) return res.status(200).send({ msg: 'Match found', queue: matched(match, state, userid, currSong) });
 
 	state = 'Album';
 
@@ -66,7 +66,7 @@ router.post('/', async (req, res) => {
 	}
 
 	match = await checkMatch(userid, state, currSong);
-	if (match) return res.status(200).send({ msg: 'Match found', queue: matched(match, state) });
+	if (match) return res.status(200).send({ msg: 'Match found', queue: matched(match, state, userid, currSong) });
 
 	state = 'Artist';
 
@@ -79,10 +79,10 @@ router.post('/', async (req, res) => {
 		match = await checkMatch(userid, state, currSong);
 	}
 
-	res.status(200).send({ msg: 'Match found', queue: matched(match, state) });
+	res.status(200).send({ msg: 'Match found', queue: matched(match, state, userid, currSong) });
 });
 
-async function matched(queue, state) {
+async function matched(queue, state, userid, currSong) {
 	//create chatroom and send response and other logic
 	const fetchOptions = {
 		method: 'GET',
