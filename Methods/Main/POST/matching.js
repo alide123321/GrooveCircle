@@ -23,7 +23,7 @@ router.post('/', async (req, res) => {
 
 	let currSong = await fetch(`http://localhost:${process.env.PORT}/CurrentListingTo`, GetfetchOptions);
 	if (currSong.status !== 200) return res.status(404).send('issue with fetching current song');
-	currSong = await currSong.json();
+	currSong = (await currSong.json()).currentListeningTo;
 
 	const PostfetchOptions = {
 		method: 'POST',
