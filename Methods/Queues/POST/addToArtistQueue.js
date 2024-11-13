@@ -1,4 +1,5 @@
 const express = require('express');
+const fetch = require('node-fetch');
 const router = express.Router();
 const { database } = require('../../../dbClient');
 
@@ -13,7 +14,14 @@ router.post('/', async (req, res) => {
 		});
 	}
 
-	const queues = database.collection('artistQueue');
+	const queues = database.collection('ArtistQueue');
+
+	const fetchOptions = {
+		method: 'GET',
+		headers: {
+			artistid,
+		},
+	};
 
 	// Check if song is already in queue
 	const existingEntry = await fetch(`http://localhost:${process.env.PORT}/ArtistQueue`, fetchOptions).then((response) =>

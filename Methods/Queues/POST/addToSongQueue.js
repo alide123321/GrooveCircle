@@ -1,6 +1,6 @@
 const express = require('express');
-const router = express.Router();
 const fetch = require('node-fetch');
+const router = express.Router();
 const { database } = require('../../../dbClient');
 
 // POST route for moving to song match queue
@@ -14,7 +14,7 @@ router.post('/', async (req, res) => {
 		});
 	}
 
-	const queues = database.collection('songQueue');
+	const queues = database.collection('SongQueue');
 
 	let fetchOptions = {
 		method: 'GET',

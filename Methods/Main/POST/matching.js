@@ -46,17 +46,45 @@ router.post('/', async (req, res) => {
 		},
 	};
 
-	const addToQueueResponse = await fetch(`http://localhost:${process.env.PORT}/addToSongQueue`, PostfetchOptions);
+	let addToQueueResponse = await fetch(`http://localhost:${process.env.PORT}/addToSongQueue`, PostfetchOptions);
 	if (!addToQueueResponse.ok) {
 		console.log(addToQueueResponse);
 		return res.status(404).send('issue with adding user to song queue');
 	}
 
+	async function matched(matchQueue) {
+		// Remove the queue from the database
+		const DeleteQueuefetchOptions = {
+			method: 'DELETE',
+			headers: {
+				'Content-Type': 'application/json',
+				state: state,
+				queueid: matchQueue._id,
+			},
+		};
+
+		fetch(`http://localhost:${process.env.PORT}/removeQueuefromDB`, DeleteQueuefetchOptions);
+
+		// create Chatroom and return the chatroom id
+		const CreateChatroomfetchOptions = {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({ userids: matchQueue.userids }),
+		};
+
+		const Chatroom = await fetch(
+			`http://localhost:${process.env.PORT}/createChatroom`,
+			CreateChatroomfetchOptions
+		).then((response) => response.json());
+
+		if (!Chatroom.chatroomId) return res.status(404).send('issue with creating chatroom');
+		return res.status(200).send({ msg: 'Match found', chatroomId: `${Chatroom.chatroomId}` });
+	}
+
 	let match = await checkMatch(userid, state, currSong);
-	if (match)
-		return await res
-			.status(200)
-			.send({ msg: 'Match found', queueId: `${await matched(match, state, userid, currSong)}` });
+	if (match) return matched(match);
 
 	state = 'Album';
 
@@ -69,8 +97,7 @@ router.post('/', async (req, res) => {
 	}
 
 	match = await checkMatch(userid, state, currSong);
-	if (match)
-		return res.status(200).send({ msg: 'Match found', queueId: `${await matched(match, state, userid, currSong)}` });
+	if (match) return matched(match);
 
 	state = 'Artist';
 
@@ -83,28 +110,8 @@ router.post('/', async (req, res) => {
 		match = await checkMatch(userid, state, currSong);
 	}
 
-	res.status(200).send({ msg: 'Match found', queueId: `${await matched(match, state, userid, currSong)}` });
+	return matched(match);
 });
-
-async function matched(queue, state, userid, currSong) {
-	//create chatroom and send response and other logic
-	const fetchOptions = {
-		method: 'GET',
-		headers: {
-			'Content-Type': 'application/json',
-			userid: userid,
-			songid: currSong.songId,
-			artistid: currSong.artistId,
-			albumid: currSong.albumId,
-		},
-	};
-
-	const Queue = await fetch(`http://localhost:${process.env.PORT}/${state}Queue`, fetchOptions).then((res) =>
-		res.json()
-	);
-	console.log(Queue.queue._id);
-	return Queue.queue._id;
-}
 
 async function checkMatch(userid, state, currSong) {
 	const fetchOptions = {
@@ -117,17 +124,17 @@ async function checkMatch(userid, state, currSong) {
 			albumid: currSong.albumId,
 		},
 	};
-	let initalTime = new Date().getTime();
 
-	for (let i = new Date().getTime(); i < initalTime + 60000; ++i) {
-		console.log('Checking for match...');
+	const queueLength = 5; // in seconds
+	const checkEvery = 5; // in seconds
 
+	for (let i = 0; i < queueLength; i += checkEvery) {
 		const Queue = await fetch(`http://localhost:${process.env.PORT}/${state}Queue`, fetchOptions).then((res) =>
 			res.json()
 		);
 
-		if (Queue.queue.userids.length >= 3) return Queue.queue;
-		await new Promise((resolve) => setTimeout(resolve, 5000));
+		if (Queue.queue.userids.length >= 5) return Queue.queue;
+		await new Promise((resolve) => setTimeout(resolve, checkEvery * 1000));
 	}
 
 	return false;

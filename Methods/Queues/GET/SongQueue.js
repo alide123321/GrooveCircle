@@ -13,7 +13,7 @@ router.get('/', async (req, res) => {
 		});
 	}
 
-	const queues = database.collection('songQueue');
+	const queues = database.collection('SongQueue');
 
 	// Check if song is already in queue
 	const existingEntry = await queues.findOne({ songID: songid });
