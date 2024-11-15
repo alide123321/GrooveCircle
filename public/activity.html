@@ -14,6 +14,7 @@
         <a href="/profile" class="nav-link">Profile</a>
     </div>
 
+    <!-- Activity page -->
     <div class="container">
         <h1>Activity</h1>
         <!-- Button to post activity -->
@@ -24,7 +25,23 @@
             <div class="modal-content">
                 <span class="close">&times;</span>
                 <h2>Post Activity</h2>
-                <textarea id="activity-text" placeholder="What's on your mind?" class="form-control"></textarea>
+                <!-- Song select -->
+                <select id="song-select" class="form-control">
+                    <option value="" disabled selected>Select a recent listened to song</option>
+                </select>
+                <!-- dropdown for activity type -->
+                <select id="activity-type" class="form-control">
+                    <option value="" disabled selected>React to this song</option>
+                    <option value="loves">Loves</option>
+                    <option value="likes">Likes</option>
+                    <option value="recommends">Recommends</option>
+                    <option value="vibes_with">Vibes with</option>
+                    <option value="is_confused_by">Is confused by</option>
+                    <option value="dislikes">Dislikes</option>
+                    <option value="hates">Hates</option>
+                    <option value="cringes">Cringes to</option>
+                </select>
+                <!-- Post button -->
                 <button id="post-activity-button" class="btn btn-primary">Post</button>
             </div>
         </div>
@@ -40,15 +57,137 @@
             const modal = $("#post-activity-modal");
             const btn = $("#post-activity");
             const span = $(".close");
+            const songSelect = $("#song-select");
+            const activityType = $("#activity-type");
 
-            btn.on("click", function() {
-                modal.addClass("show");
+            // Function to get cookie 
+            function getCookie(name) {
+                let value = "; " + document.cookie; 
+                let parts = value.split("; " + name + "=");
+                if (parts.length == 2) return parts.pop().split(";").shift();
+            }
+            
+            // handle post activity button
+            $("#post-activity-button").click(function() {
+                const selectedSong = songSelect.val();
+                const selectedActivity = activityType.val();
+                const userid = getCookie('spotify_id');
+
+                if (!selectedSong || !selectedActivity) {
+                    alert("Please select a song and reaction");
+                    return;
+                }
+
+                // post activity
+                fetch('/activitie', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        userid: userid,
+                        song_id: selectedSong,
+                        activity_type: selectedActivity,
+                        timestamp: new Date().toISOString()
+                    })
+                })
+                .then(response => {
+                    if (response.ok) {
+                        modal.removeClass("show");
+                        alert("Activity posted");
+                    } else {
+                        alert("Failed to post activity");
+                    }
+                })
+                .catch(error => {
+                    console.error('Error posting activity:', error);
+                    alert("An error occurred while posting activity");
+                });
             });
 
+            // function to fetch and populate song history
+            function loadSongHistory() {
+                // get access token from cookie
+                const accessToken = getCookie('access_token');
+                const userid = getCookie('spotify_id');
+
+                if (!accessToken) {
+                    console.error('No access token found');
+                    songSelect.append(new Option('You are not logged in', ''));
+                    return;
+                }
+                // fetch song history with access token, userid, and song number limit
+                fetch('/songHistory', {
+                    method: 'GET', 
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`,
+                        'userid': userid,
+                        'limit': '20'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        if (response.status === 401) {
+                            window.location.href = '/login';
+                            return;
+                        } 
+                        throw new Error('Invalid access token');    
+                    }
+                    return response.json();
+                })
+                // populate song history
+                .then(data => {
+                    // remove existing options
+                    songSelect.find('option:not([disabled])').remove();
+
+                    // fetch artist data for each song
+                    fetch('/artistHistory', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${accessToken}`,
+                            'userid': userid,
+                            'limit': '20'
+                        }
+                    })
+                    .then(response => response.json()) 
+                    .then(artistData => {
+                        // combine song and artist data
+                        data.songHistory.forEach((song, index) => {
+                            const artistName = artistData.artistHistory[index].name;
+                            const option = new Option(`${song.name} by ${artistName}`, song.id);
+                            songSelect.append(option);
+                        })
+                    })
+                    
+                    /*
+                    // add new options from song history
+                    data.songHistory.forEach(song => {
+                        const option = new Option(song.name, song.id); 
+                        songSelect.append(option); 
+                    });
+                    */
+                })
+                .catch(error => {
+                    console.error('Error loading song history:', error);
+                    songSelect.append(new Option('Error loading song history', ''));
+                });
+            }
+
+
+            // Show modal
+            btn.on("click", function() {
+                modal.addClass("show");
+                loadSongHistory();
+            });
+            
+            // Close modal
             span.click(function() {
                 modal.removeClass("show");
             });
 
+            // Close modal if clicking outside
             $(window).click(function(event) {
                 if (event.target === modal[0]) {
                     modal.removeClass("show");

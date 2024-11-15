@@ -141,3 +141,32 @@ body {
     margin: 10px 0;
     padding: 10px;
 }
+
+#song-select {
+    width: 100%;
+    height: 30px;
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #1e1e1e;
+    color: #ffffff;
+    border: 1px solid #888;
+}
+
+#song-select option {
+    background-color: #1e1e1e;
+    color: #ffffff;
+}
+
+#activity-type {
+    width: 100%;
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #1e1e1e;
+    color: #ffffff;
+    border: 1px solid #888;
+}
+
+#activity-type option {
+    background-color: #1e1e1e;
+    color: #ffffff;
+}

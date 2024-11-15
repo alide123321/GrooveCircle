@@ -7,14 +7,23 @@ const { database } = require("../../../dbClient");
 // POST route for posting an activity
 router.post('/', async (req, res) => {
     try {
+        const { userid, song_id, activity_type, timestamp } = req.body;
+
+        // validate fields 
+        if (!userid || !song_id || !activity_type || !timestamp) {
+            return res.status(400).json({
+                error: "Missing some required activity field"
+            })
+        }
         // insert activity into database
         const activitys = database.collection('activitys');
         await activitys.insertOne({
-            message: req.body.message,
-            userid: req.body.userid,
-            activity_type: req.body.activity_type,
-            timestamp: req.body.timestamp,
+            userid,
+            song_id,
+            activity_type,
+            timestamp,
             reactions: [],
+            likes: 0, 
         }); 
 
         res.status(200).send("Activity posted successfully");
