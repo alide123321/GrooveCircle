@@ -15,14 +15,25 @@
         <a href="/profile" class="nav-link">Profile</a>
     </div>
 
+    <!-- Add Friend Button -->
+    <div class="friend-button-container">
+        <button id="add-friend-button" class="btn btn-primary">Follow</button>
+        <textarea class="friend-search" id="friend-search" placeholder="Add a friend by their id..."></textarea>
+    </div>
+
     <!-- Container for profile information -->
-    <div class="container">
-        <div id="user-profile"></div>
-        <div id="oauth"></div>
-        <!-- Button to obtain a new token using the refresh token -->
-        <button id="obtain-new-token" class="btn btn-primary">Obtain new token using the refresh token</button>
-        <!-- Logout button -->
-        <button id="logout-button" class="btn btn-primary">Logout</button>
+    <div class="profile-layout">
+        <div class="side-container">
+            <h2>Friends</h2>
+        </div>
+        <div class="container">
+            <div id="user-profile"></div>
+            <div id="oauth"></div>
+            <!-- Button to obtain a new token using the refresh token -->
+            <button id="obtain-new-token" class="btn btn-primary">Obtain new token using the refresh token</button>
+            <!-- Logout button -->
+            <button id="logout-button" class="btn btn-primary">Logout</button>
+        </div>
     </div>
 
     <!-- Handlebars template for displaying user profile information -->
@@ -99,6 +110,35 @@
                     userProfilePlaceholder.innerHTML = userProfileTemplate(response);
                 }
             });
+
+            // add friend button functionality
+            document.getElementById('add-friend-button').addEventListener('click', function() {
+                const friendId = document.getElementById('friend-search').value;
+                const userid = getCookie('spotify_id');
+
+                fetch('/addfriend', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'userid': userid,
+                        'friendid': friendId
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.errmsg) {
+                        alert(data.errmsg);
+                    } else {
+                        alert('Account followed');
+                        document.getElementById('friend-search').value = '';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error following account');
+                    document.getElementById('friend-search').value = '';
+                });
+            })
 
             // Add event listeners
             document.getElementById('logout-button').addEventListener('click', () => {

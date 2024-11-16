@@ -48,6 +48,32 @@ body {
     overflow-x: hidden;
 }
 
+.profile-layout {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    padding: 0 30px;
+    position: relative;
+}
+
+.side-container {
+    position: absolute;
+    left: 30px;
+    background-color: #2c2c2c;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    width: 300px;
+    min-height: 700px;
+}
+
+.friend-button-container {
+    display: flex;
+    justify-content: left;
+    align-items: left;
+    padding: 30px;
+}
+
 .text-overflow {
     word-wrap: break-word;
     word-break: break-all;
@@ -133,6 +159,15 @@ body {
 
 .close:hover {
     color: #4006ed;
+}
+
+.friend-search {
+    height: 38px;
+    width: 20%;
+    color: #000000;
+    margin-left: 10px;
+    padding: 8px;
+    border-radius: 5px;
 }
 
 #activity-text {
