@@ -25,7 +25,66 @@
     <div class="profile-layout">
         <div class="side-container">
             <h2>Friends</h2>
+            <div id="friends-list" class="friends-list">
+                <!-- Friends will be displayed here -->
+            </div>
         </div>
+
+        <!-- Handlebars template for displaying friend information -->
+        <script id="friend-item-template" type="text/x-handlebars-template">
+            <div class="friend-item">
+                <img class="friend-image" src="{{images.0.url}}" alt="Profile Picture"/>
+                <span class="friend-name">{{display_name}}</span>
+            </div>
+        </script>
+
+
+        <!-- Script to load friends list -->
+        <script>
+            async function loadFriendsList() {
+                const userid = getCookie('spotify_id');
+                try {
+                    // Get friends list
+                    const friendsResponse = await fetch('/Friends', {
+                        headers: {
+                            'userid': userid
+                        }
+                    });
+                    const friendsData = await friendsResponse.json();
+
+                    if (friendsData.friendsList) {
+                        const friendsList = document.getElementById('friends-list'); 
+                        const friendTemplate = Handlebars.compile(document.getElementById('friend-item-template').innerHTML);
+
+                        // Clear existing friends list
+                        friendsList.innerHTML = '';
+
+                        // fetch and display each friend's info 
+                        for (const friendId of friendsData.friendsList) {
+                            const response = await fetch('https://api.spotify.com/v1/users/' + friendId, {
+                                headers: {
+                                    'Authorization': 'Bearer ' + getCookie('access_token')
+                                }
+                            });
+                            const friendData = await response.json();
+
+                            // add default image if none exists
+                            if (!friendData.images || friendData.images.length === 0) {
+                                friendData.images = [{url: '/images/default-profile.png'}];
+                            }
+
+                            const friendHtml = friendTemplate(friendData);
+                            friendsList.innerHTML += friendHtml;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error loading friends list:', error);
+                }
+            }
+        </script>
+
+        
+        <!-- Container for user profile information -->
         <div class="container">
             <div id="user-profile"></div>
             <div id="oauth"></div>
@@ -78,6 +137,7 @@
         window.onload = function() {
             if (checkAuth()) {
                 loadProfileData();
+                loadFriendsList();
             }
         };
 
