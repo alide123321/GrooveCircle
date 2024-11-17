@@ -201,21 +201,55 @@
                         });
 
                         // fetch song data
-                        fetch(`/songHistory/${activity.song_id}`, {
+                        fetch('/songHistory', {
                             method: 'GET',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${getCookie('access_token')}`
+                                'Authorization': `Bearer ${getCookie('access_token')}`,
+                                'userid': activity.userid,
+                                'limit': '1',
+                                'song_id': activity.song_id
                             }
                         })
-                        .then(response => response.json())
-                        .then(songData => {
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then(async songData => {
                             console.log('Song data received:', songData);
-                            activityCard.find('.activity-song').text(`${songData.name} by ${songData.artists[0].name}`);
+                            
+                            const artistResponse = await fetch('/artistHistory', {
+                                method: 'GET',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${getCookie('access_token')}`,
+                                    'userid': activity.userid,
+                                    'limit': '1',
+                                    'song_id': activity.song_id
+                                }
+                            });
+
+                            if (!artistResponse.ok) {
+                                throw new Error('Failed to fetch artist data');
+                            }
+
+                            const artistData = await artistResponse.json();
+                            console.log('Artist data received:', artistData);
+
+                            // update activity card with song and artist info
+                            if (songData.songHistory && songData.songHistory[0] && artistData.artistHistory && artistData.artistHistory[0]) {
+                                const songName = songData.songHistory[0].name;
+                                const artistName = artistData.artistHistory[0].name;
+                                activityCard.find('.activity-song').text(`${songName} by ${artistName}`);
+                            } else {
+                                throw new Error('Invalid song/artist data format');
+                            }
                         })
                         .catch(error => {
-                            console.warn('Error fetching song data:', error);
-                            activityCard.find('.activity-song').text(`Song ID: ${activity.song_id}`);
+                            console.warn('Error fetching song/artist data:', error);
+                            activityCard.find('.activity-song').text(`unable to load song details`);
                         });
                     });
 
