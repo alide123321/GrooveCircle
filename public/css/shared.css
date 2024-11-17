@@ -48,14 +48,6 @@ body {
     overflow-x: hidden;
 }
 
-.profile-layout {
-    display: flex;
-    justify-content: center;
-    gap: 30px;
-    padding: 0 30px;
-    position: relative;
-}
-
 .side-container {
     position: absolute;
     left: 30px;
@@ -75,6 +67,57 @@ body {
     padding: 30px;
 }
 
+.oauth-container {
+    padding-left: 20px;
+    margin: 20px 0;
+}
+
+.profile-layout {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    padding: 0 30px;
+    position: relative;
+}
+
+/* Feed styles */
+.feed-section {
+    margin-top: 30px;
+    text-align: left;
+}
+
+.feed-section h2 {
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #4006ed;
+}
+
+.activity-feed {
+    max-height: 600px;
+    overflow-y: auto;
+    padding: 10px;
+    background-color: #1e1e1e;
+    border-radius: 8px;
+}
+
+/* Add custom scrollbar for the feed */
+.activity-feed::-webkit-scrollbar {
+    width: 8px;
+}
+
+.activity-feed::-webkit-scrollbar-track {
+    background: #1e1e1e;
+}
+
+.activity-feed::-webkit-scrollbar-thumb {
+    background: #4006ed;
+    border-radius: 4px;
+}
+
+.activity-feed::-webkit-scrollbar-thumb:hover {
+    background: #3005ba;
+}
+
 .text-overflow {
     word-wrap: break-word;
     word-break: break-all;
@@ -85,11 +128,6 @@ body {
 .dl-horizontal dd {
     margin-left: 180px;
     margin-bottom: 10px;
-}
-
-.oauth-container {
-    padding-left: 20px;
-    margin: 20px 0;
 }
 
 /* Login page specific */
