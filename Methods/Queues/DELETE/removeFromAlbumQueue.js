@@ -24,17 +24,15 @@ router.delete('/', async (req, res) => {
 	});
 
 	queues.findOne({ albumID: albumid }).then((result) => {
-		if (result.userids.length === 0) {
-			if (result.userids.length === 0) {
-				const fetchOptions = {
-					method: 'DELETE',
-					headers: {
-						queueid: result._id,
-						state: 'Album',
-					},
-				};
-				fetch(`http://localhost:${process.env.PORT}/removeQueuefromDB`, fetchOptions);
-			}
+		if (result.userids && result.userids.length === 0) {
+			const fetchOptions = {
+				method: 'DELETE',
+				headers: {
+					queueid: result._id,
+					state: 'Album',
+				},
+			};
+			fetch(`http://localhost:${process.env.PORT}/removeQueuefromDB`, fetchOptions);
 		}
 	});
 });
