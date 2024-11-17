@@ -100,6 +100,49 @@ body {
     border-radius: 8px;
 }
 
+.activity-card {
+    background-color: #363636;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    transition: background-color 0.2s;
+}
+
+.activity-card:hover {
+    background-color: #404040;
+}
+
+.activity-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.activity-user {
+    font-weight: bold;
+    color: #06dded;
+}
+
+.activity-time {
+    color: #888;
+    font-size: 0.9em;
+}
+
+.activity-content {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.activity-type {
+    font-style: italic;
+    color: #aaa;
+}
+
+.activity-song {
+    font-weight: bold;
+}
+
 /* Add custom scrollbar for the feed */
 .activity-feed::-webkit-scrollbar {
     width: 8px;
