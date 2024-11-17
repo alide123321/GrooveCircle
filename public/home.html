@@ -1,9 +1,50 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>GrooveCircle</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="/css/shared.css">
+    <style>
+        .friend-selector {
+            background-color: #2c2c2c;
+            color: #ffffff;
+            border: 1px solid #444;
+            padding: 10px;
+            font-size: 1em;
+            width: 100%;
+            margin-top: 10px;
+            border-radius: 5px;
+        }
+
+        .friend-selector option {
+            background-color: #2c2c2c;
+            color: #ffffff;
+        }
+
+        .song-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .album-cover {
+            width: 50px;
+            height: 50px;
+            margin-right: 15px;
+        }
+
+        .song-title {
+            font-weight: bold;
+        }
+
+        .scrollable {
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+    </style>
 </head>
 <body class="page">
     <div id="nav-bar" class="nav-bar">
@@ -16,9 +57,81 @@
 
     <div class="container">
         <h1>Home</h1>
+        <h3>Recently Played Songs</h3>
+        <select id="friend-selector" class="friend-selector">
+            <option value="me" selected>My History</option>
+        </select>
+        <div id="song-history" class="song-history-list scrollable"></div>
     </div>
 
     <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
-    <script src="/js/shared.js"></script>
+    <script>
+        $(document).ready(function () {
+            const loggedInUserId = '3144iyneo4gxwkl5cxt5jrwuhc2i'; // should replace with logged in user ID
+
+            //fetch song history for a user
+            function fetchSongHistory(userId) {
+                $.ajax({
+                    url: '/songHistory',
+                    type: 'GET',
+                    headers: { userid: userId, limit: 10 },
+                    success: function (response) {
+                        const songHistoryContainer = $('#song-history');
+                        songHistoryContainer.empty();
+
+                        if (response.songHistory && response.songHistory.length > 0) {
+                            response.songHistory.forEach(song => {
+                                const songItem = `
+                                    <div class="song-item">
+                                        <img src="${song.image.url}" alt="Album Cover" class="album-cover">
+                                        <div>
+                                            <p class="song-title">${song.name}</p>
+                                            <p class="song-id">ID: ${song.id}</p>
+                                        </div>
+                                    </div>
+                                `;
+                                songHistoryContainer.append(songItem);
+                            });
+                        } else {
+                            songHistoryContainer.html('<p>No recent songs found.</p>');
+                        }
+                    },
+                    error: function () {
+                        $('#song-history').html('<p>Unable to load song history.</p>');
+                    }
+                });
+            }
+
+            //fetch and adds friends dropdown
+            function fetchFriends() {
+                $.ajax({
+                    url: '/friends',
+                    type: 'GET',
+                    headers: { userid: loggedInUserId },
+                    success: function (response) {
+                        const friendSelector = $('#friend-selector');
+                        if (response.friendsList && response.friendsList.length > 0) {
+                            response.friendsList.forEach(friend => {
+                                const friendOption = `<option value="${friend}">Friend ID: ${friend}</option>`;
+                                friendSelector.append(friendOption);
+                            });
+                        }
+                    },
+                    error: function () {
+                        console.error('Unable to load friends list.');
+                    }
+                });
+            }
+
+            //fetch selected user's song history
+            $('#friend-selector').on('change', function () {
+                const selectedUserId = $(this).val();
+                fetchSongHistory(selectedUserId === 'me' ? loggedInUserId : selectedUserId);
+            });
+
+            fetchSongHistory(loggedInUserId);
+            fetchFriends();
+        });
+    </script>
 </body>
 </html>

@@ -281,3 +281,34 @@ body {
     background-color: #1e1e1e;
     color: #ffffff;
 }
+
+/* Fix dropdown visibility */
+.friend-selector {
+    background-color: #2c2c2c;
+    color: #ffffff;
+    border: 1px solid #444;
+    padding: 10px;
+    font-size: 1em;
+    width: 100%;
+    margin-top: 10px;
+    border-radius: 5px;
+}
+
+.friend-selector option {
+    background-color: #2c2c2c;
+    color: #ffffff;
+    padding: 10px;
+}
+
+/* Add padding below the dropdown */
+.song-history-list {
+    margin-top: 20px; /*adds some space between the dropdown and song list */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px; /* Space between songs */
+}
+
+.dropdown {
+    margin-bottom: 20px; 
+}
