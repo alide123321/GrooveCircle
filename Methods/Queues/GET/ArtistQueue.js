@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { database } = require('../../../dbClient');
 
-// GET route for moving to song match queue
+// GET route for moving to user match queue
 router.get('/', async (req, res) => {
 	const { artistid } = req.headers;
 
@@ -15,7 +15,7 @@ router.get('/', async (req, res) => {
 
 	const queues = database.collection('ArtistQueue');
 
-	// Check if song is already in queue
+	// Check if user is already in queue
 	const existingEntry = await queues.findOne({ artistID: artistid });
 
 	// send response

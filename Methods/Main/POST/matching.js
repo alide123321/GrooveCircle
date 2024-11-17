@@ -46,12 +46,6 @@ router.post('/', async (req, res) => {
 		},
 	};
 
-	let addToQueueResponse = await fetch(`http://localhost:${process.env.PORT}/addToSongQueue`, PostfetchOptions);
-	if (!addToQueueResponse.ok) {
-		console.log(addToQueueResponse);
-		return res.status(404).send('issue with adding user to song queue');
-	}
-
 	async function matched(matchQueue) {
 		// Remove the queue from the database
 
@@ -76,6 +70,12 @@ router.post('/', async (req, res) => {
 
 		if (!Chatroom.chatroomId) return res.status(404).send('issue with creating chatroom');
 		return res.status(200).send({ msg: 'Match found', chatroomId: `${Chatroom.chatroomId}` });
+	}
+
+	let addToQueueResponse = await fetch(`http://localhost:${process.env.PORT}/addToSongQueue`, PostfetchOptions);
+	if (!addToQueueResponse.ok) {
+		console.log(addToQueueResponse);
+		return res.status(404).send('issue with adding user to song queue');
 	}
 
 	let match = await checkMatch(userid, state, currSong);
