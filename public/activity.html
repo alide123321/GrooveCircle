@@ -74,6 +74,193 @@
                 let parts = value.split("; " + name + "=");
                 if (parts.length == 2) return parts.pop().split(";").shift();
             }
+
+            // function to load activities 
+            async function loadActivitiesFeed() {
+                console.log('Loading activities feed');
+                const userid = getCookie('spotify_id');
+                const activityFeed = $("#activity-feed");
+
+                console.log('User ID:', userid);
+
+                if (!userid) {
+                    console.error('No user ID found');
+                    activityFeed.html('<p>You are not logged in</p>');
+                    return;
+                }
+
+                try {
+                    console.log('Fetching friends');
+                    // get friends
+                    const friendsResponse = await fetch('/Friends', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'userid': userid
+                        }
+                    });
+
+                    if (!friendsResponse.ok) {
+                        throw new Error('Failed to fetch friends');
+                    }
+
+                    const friendsData = await friendsResponse.json();
+                    console.log('Friends data:', friendsData);
+
+                    // get current user's activities
+                    console.log('Fetching user activities...');
+                    const userActivities = await fetch('/Activities', {
+                        method: 'GET', 
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'userid': userid 
+                        }
+                    });
+
+                    if (!userActivities.ok) {
+                        throw new Error('Failed to fetch user activities');
+                    }
+
+                    const userActivitiesData = await userActivities.json();
+                    console.log('User activities data:', userActivitiesData);
+
+                    // get friends' activities
+                    console.log('Fetching friends activities...');
+                    const friendsActivities = await Promise.all(
+                        (friendsData.friendsList || []).map(async friendId => {
+                            const response = await fetch('/Activities', {
+                                method: 'GET',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'userid': friendId
+                                }
+                            });
+                            if (!response.ok) {
+                                console.warn(`Failed to fetch activities for friend ${friendId}`);
+                                return { activities: [] };
+                            }
+                            return response.json();
+                        })
+                    );
+
+                    console.log('Friends activities:', friendsActivities);
+
+                    // combine activities
+                    let allActivities = userActivitiesData.activities || []; 
+                    friendsActivities.forEach(friendActivity => {
+                        if (friendActivity.activities) {
+                            allActivities = allActivities.concat(friendActivity.activities);
+                        }
+                    });
+
+                    console.log('combined activities:', allActivities);
+
+                    // sort activities by timestamp
+                    allActivities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+                    // clear existing activities
+                    activityFeed.empty();
+
+                    if (allActivities.length === 0) {
+                        activityFeed.html('<p>No activities to show</p>');
+                        return;
+                    }
+
+                    // populate feed with activities
+                    allActivities.forEach( activity => {
+                        const activityCard = $(`
+                            <div class="activity-card">
+                                <div class="activity-header">
+                                    <span class="activity-user">Loading username...</span>
+                                    <span class="activity-time">${new Date(activity.timestamp).toLocaleString()}</span>
+                                </div>
+                                <div class="activity-content">
+                                    <span class="activity-type">${activity.activity_type}</span>
+                                    <span class="activity-song">Loading song details...</span>
+                                </div>
+                            </div>
+                        `);
+
+                        activityFeed.append(activityCard);
+
+                        // fetch username
+                        fetch('/Username', {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'userid': activity.userid
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(userData => {
+                            activityCard.find('.activity-user').text(userData.username);    
+                        })
+                        .catch(error => {
+                            console.warn('Error fetching username:', error);
+                            activityCard.find('.activity-user').text(`User ID: ${activity.userid}`);
+                        });
+
+                        // fetch song data
+                        fetch('/songHistory', {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${getCookie('access_token')}`,
+                                'userid': activity.userid,
+                                'limit': '1',
+                                'song_id': activity.song_id
+                            }
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then(async songData => {
+                            console.log('Song data received:', songData);
+                            
+                            const artistResponse = await fetch('/artistHistory', {
+                                method: 'GET',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${getCookie('access_token')}`,
+                                    'userid': activity.userid,
+                                    'limit': '1',
+                                    'song_id': activity.song_id
+                                }
+                            });
+
+                            if (!artistResponse.ok) {
+                                throw new Error('Failed to fetch artist data');
+                            }
+
+                            const artistData = await artistResponse.json();
+                            console.log('Artist data received:', artistData);
+
+                            // update activity card with song and artist info
+                            if (songData.songHistory && songData.songHistory[0] && artistData.artistHistory && artistData.artistHistory[0]) {
+                                const songName = songData.songHistory[0].name;
+                                const artistName = artistData.artistHistory[0].name;
+                                activityCard.find('.activity-song').text(`${songName} by ${artistName}`);
+                            } else {
+                                throw new Error('Invalid song/artist data format');
+                            }
+                        })
+                        .catch(error => {
+                            console.warn('Error fetching song/artist data:', error);
+                            activityCard.find('.activity-song').text(`unable to load song details`);
+                        });
+                    });
+
+                } catch (error) {
+                    console.error('Error loading activities:', error);
+                    activityFeed.html('<p>Error loading activities</p>');
+                }
+            }
+
+            // load activities on page load
+            loadActivitiesFeed();
             
             // handle post activity button
             $("#post-activity-button").click(function() {
@@ -102,6 +289,7 @@
                 .then(response => {
                     if (response.ok) {
                         modal.removeClass("show");
+                        loadActivitiesFeed();
                         alert("Activity posted");
                     } else {
                         alert("Failed to post activity");
