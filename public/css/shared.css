@@ -100,6 +100,49 @@ body {
     border-radius: 8px;
 }
 
+.activity-card {
+    background-color: #363636;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    transition: background-color 0.2s;
+}
+
+.activity-card:hover {
+    background-color: #404040;
+}
+
+.activity-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.activity-user {
+    font-weight: bold;
+    color: #06dded;
+}
+
+.activity-time {
+    color: #888;
+    font-size: 0.9em;
+}
+
+.activity-content {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.activity-type {
+    font-style: italic;
+    color: #aaa;
+}
+
+.activity-song {
+    font-weight: bold;
+}
+
 /* Add custom scrollbar for the feed */
 .activity-feed::-webkit-scrollbar {
     width: 8px;
@@ -280,35 +323,4 @@ body {
 #activity-type option {
     background-color: #1e1e1e;
     color: #ffffff;
-}
-
-/* Fix dropdown visibility */
-.friend-selector {
-    background-color: #2c2c2c;
-    color: #ffffff;
-    border: 1px solid #444;
-    padding: 10px;
-    font-size: 1em;
-    width: 100%;
-    margin-top: 10px;
-    border-radius: 5px;
-}
-
-.friend-selector option {
-    background-color: #2c2c2c;
-    color: #ffffff;
-    padding: 10px;
-}
-
-/* Add padding below the dropdown */
-.song-history-list {
-    margin-top: 20px; /*adds some space between the dropdown and song list */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px; /* Space between songs */
-}
-
-.dropdown {
-    margin-bottom: 20px; 
 }
