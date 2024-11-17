@@ -191,6 +191,7 @@
                     } else {
                         alert('Account followed');
                         document.getElementById('friend-search').value = '';
+                        window.location.reload();
                     }
                 })
                 .catch(error => {
