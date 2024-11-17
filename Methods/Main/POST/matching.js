@@ -128,7 +128,7 @@ async function checkMatch(userid, state, currSong) {
 			res.json()
 		);
 
-		if (Queue.queue.userids.length >= 5) return Queue.queue;
+		if (Queue.queue && Queue.queue.userids.length >= 5) return Queue.queue;
 		await new Promise((resolve) => setTimeout(resolve, checkEvery * 1000));
 	}
 
