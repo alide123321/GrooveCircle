@@ -1,36 +1,38 @@
 const express = require('express');
-const { database } = require('../../../dbClient'); 
+const fetch = require('node-fetch');
 const router = express.Router();
 
+const app = express();
+app.use(express.json());
+
 router.get('/', async (req, res) => {
-    let { userid } = req.headers;
+	const { userid } = req.headers;
 
-    userid = userid?.trim();
+	if (!userid)
+		return res.status(400).json({
+			errmsg: 'userid is required',
+		});
 
-    if (!userid) {
-        return res.status(400).json({ errmsg: "Valid userid is required." });
-    }
+	const fetchOptions = {
+		method: 'GET',
+		headers: {
+			'Content-Type': 'application/json',
+			userid: userid,
+		},
+	};
 
-    try {
-        //fetch the user from the database
-        const users = database.collection('users');
-        const user = await users.findOne({ "spotify_info.id": userid });
+	let userInfo = await fetch(`http://localhost:${process.env.PORT}/User`, fetchOptions).then((response) =>
+		response.json()
+	);
 
-        //checks if user exists and has a friends list
-        if (!user) {
-            return res.status(404).json({ errmsg: "User not found." });
-        }
+	if (!userInfo.user || !userInfo.user.friends_list)
+		return res.status(404).json({
+			errmsg: 'User not found',
+		});
 
-        if (!user.friends_list || user.friends_list.length === 0) {
-            return res.status(200).json({ friendsList: [] }); // Return an empty list if no friends
-        }
-
-        //return friends list
-        res.status(200).json({ friendsList: user.friends_list });
-    } catch (error) {
-        console.error("Error fetching friends:", error);
-        res.status(500).json({ errmsg: "Failed to fetch friends." });
-    }
+	res.status(200).json({
+		friendsList: userInfo.user.friends_list,
+	});
 });
 
 module.exports = router;
