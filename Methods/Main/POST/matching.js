@@ -35,7 +35,7 @@ router.post('/', async (req, res) => {
 			albumid: currSong.albumId,
 		},
 	};
-	let DeletefetchOptions = {
+	const DeletefetchOptions = {
 		method: 'DELETE',
 		headers: {
 			'Content-Type': 'application/json',
@@ -47,12 +47,9 @@ router.post('/', async (req, res) => {
 	};
 
 	async function matched(matchQueue) {
-		// Remove the queue from the database
+		// Remove the user from the Queue
 
-		for (let i = 0; i < 5; i++) {
-			DeletefetchOptions.headers.userid = matchQueue.userids[i];
-			fetch(`http://localhost:${process.env.PORT}/removeFrom${state}Queue`, DeletefetchOptions);
-		}
+		fetch(`http://localhost:${process.env.PORT}/removeFrom${state}Queue`, DeletefetchOptions);
 
 		// create Chatroom and return the chatroom id
 		const CreateChatroomfetchOptions = {
@@ -72,40 +69,43 @@ router.post('/', async (req, res) => {
 		return res.status(200).send({ msg: 'Match found', chatroomId: `${Chatroom.chatroomId}` });
 	}
 
-	let addToQueueResponse = await fetch(`http://localhost:${process.env.PORT}/addToSongQueue`, PostfetchOptions);
-	if (!addToQueueResponse.ok) {
-		console.log(addToQueueResponse);
-		return res.status(404).send('issue with adding user to song queue');
+	async function addToQueue() {
+		let addToQueueResponse = await fetch(`http://localhost:${process.env.PORT}/addTo${state}Queue`, PostfetchOptions);
+		if (!addToQueueResponse.ok) {
+			console.log(addToQueueResponse);
+			res.status(404).send(`issue with adding user to ${state} queue`);
+			return false;
+		}
+		return true;
 	}
 
-	let match = await checkMatch(userid, state, currSong);
-	if (match) return matched(match);
+	async function removeFromQueue() {
+		fetch(`http://localhost:${process.env.PORT}/removeFrom${state}Queue`, DeletefetchOptions);
+	}
 
+	if (!(await addToQueue())) return;
+	await checkMatch(userid, state, currSong).then((match) => {
+		if (match) return matched(match);
+	});
+	removeFromQueue();
 	state = 'Album';
 
-	fetch(`http://localhost:${process.env.PORT}/removeFromSongQueue`, DeletefetchOptions);
+	if (!(await addToQueue())) return;
+	await checkMatch(userid, state, currSong).then((match) => {
+		if (match) return matched(match);
+	});
 
-	addToQueueResponse = await fetch(`http://localhost:${process.env.PORT}/addToAlbumQueue`, PostfetchOptions);
-	if (!addToQueueResponse.ok) {
-		console.log(addToQueueResponse);
-		return res.status(404).send('issue with adding user to album queue');
-	}
-
-	match = await checkMatch(userid, state, currSong);
-	if (match) return matched(match);
-
+	removeFromQueue();
 	state = 'Artist';
-
-	fetch(`http://localhost:${process.env.PORT}/removeFromAlbumQueue`, DeletefetchOptions);
 
 	addToQueueResponse = await fetch(`http://localhost:${process.env.PORT}/addToArtistQueue`, PostfetchOptions);
 	if (!addToQueueResponse.ok) return res.status(404).send('issue with adding user to artist queue');
 
-	while (!match) {
-		match = await checkMatch(userid, state, currSong);
+	while (true) {
+		await checkMatch(userid, state, currSong).then((match) => {
+			if (match) return matched(match);
+		});
 	}
-
-	return matched(match);
 });
 
 async function checkMatch(userid, state, currSong) {
@@ -120,7 +120,7 @@ async function checkMatch(userid, state, currSong) {
 		},
 	};
 
-	const queueLength = 60; // in seconds
+	const queueLength = 5; // in seconds
 	const checkEvery = 5; // in seconds
 
 	for (let i = 0; i < queueLength; i += checkEvery) {

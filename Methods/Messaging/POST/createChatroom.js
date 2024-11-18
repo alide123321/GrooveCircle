@@ -30,6 +30,19 @@ router.post('/', async (req, res) => {
 			}
 		}
 
+		const chatroomsCollection = database.collection('chatrooms');
+
+		//this is to check if a chatroom already exists with the same participants
+		const existingChatroom = await chatroomsCollection.findOne({
+			participants: { $all: userids },
+		});
+
+		if (existingChatroom)
+			return res.status(200).json({
+				message: `Chatroom created successfully.`,
+				chatroomId: existingChatroom._id,
+			});
+
 		//this is to create a new chatroom with the retrieved user data
 		const chatroom = {
 			participants: userids,
@@ -38,13 +51,15 @@ router.post('/', async (req, res) => {
 			created_at: new Date(),
 		};
 
-		const chatroomsCollection = database.collection('chatrooms');
 		const result = await chatroomsCollection.insertOne(chatroom);
 
 		res.status(200).json({
 			message: `Chatroom created successfully.`,
 			chatroomId: result.insertedId,
 		});
+
+		await new Promise((resolve) => setTimeout(resolve, 300 * 1000)); // after 300 seconds (5 mins), delete the chatroom
+		chatroomsCollection.deleteOne({ _id: result.insertedId });
 	} catch (error) {
 		console.error('Error creating chatroom:', error);
 		res.status(500).json({
