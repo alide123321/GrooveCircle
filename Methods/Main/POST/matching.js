@@ -9,7 +9,8 @@ app.use(cookieParser());
 
 router.post('/', async (req, res) => {
 	const { userid } = req.headers;
-	let state = 'Song';
+	const queueNames = ['Song', 'Album', 'Artist'];
+	let state = queueNames[0];
 
 	if (!userid) return res.status(400).send('Missing userid');
 
@@ -85,23 +86,15 @@ router.post('/', async (req, res) => {
 		fetch(`http://localhost:${process.env.PORT}/removeFrom${state}Queue`, DeletefetchOptions);
 	}
 
-	if (!(await addToQueue())) return;
-	await checkMatch(userid, state, currSong).then((match) => {
-		if (match) return matched(match);
-	});
-	removeFromQueue();
-	state = 'Album';
+	for (let i = 0; i < queueNames.length; i++) {
+		state = queueNames[i];
+		if (!(await addToQueue())) return;
+		await checkMatch(userid, state, currSong).then((match) => {
+			if (match) return matched(match);
+		});
 
-	if (!(await addToQueue())) return;
-	await checkMatch(userid, state, currSong).then((match) => {
-		if (match) return matched(match);
-	});
-
-	removeFromQueue();
-	state = 'Artist';
-
-	addToQueueResponse = await fetch(`http://localhost:${process.env.PORT}/addToArtistQueue`, PostfetchOptions);
-	if (!addToQueueResponse.ok) return res.status(404).send('issue with adding user to artist queue');
+		if (i !== 2) removeFromQueue();
+	}
 
 	while (true) {
 		await checkMatch(userid, state, currSong).then((match) => {
