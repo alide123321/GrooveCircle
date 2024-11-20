@@ -31,6 +31,7 @@ router.post('/', async (req, res) => {
 		}
 
 		const chatroomsCollection = database.collection('chatrooms');
+		const user = database.collection('users');
 
 		//this is to check if a chatroom already exists with the same participants
 		const existingChatroom = await chatroomsCollection.findOne({
@@ -53,6 +54,10 @@ router.post('/', async (req, res) => {
 
 		const result = await chatroomsCollection.insertOne(chatroom);
 
+		userids.forEach(async (userid) => {
+			user.updateOne({ 'spotify_info.id': userid }, { $push: { message_list: result.insertedId } });
+		});
+
 		res.status(200).json({
 			message: `Chatroom created successfully.`,
 			chatroomId: result.insertedId,
@@ -60,6 +65,9 @@ router.post('/', async (req, res) => {
 
 		await new Promise((resolve) => setTimeout(resolve, 300 * 1000)); // after 300 seconds (5 mins), delete the chatroom
 		chatroomsCollection.deleteOne({ _id: result.insertedId });
+		userids.forEach(async (userid) => {
+			user.updateOne({ 'spotify_info.id': userid }, { $pull: { message_list: result.insertedId } });
+		});
 	} catch (error) {
 		console.error('Error creating chatroom:', error);
 		res.status(500).json({
