@@ -21,6 +21,7 @@ router.post('/', (req, res) => {
 				id: req.body.id,
 				refresh_token: req.body.refresh_token,
 				access_token: req.body.access_token,
+				access_token_expiration: Number(req.body.access_token_expiration),
 				email: req.body.email,
 				profile_image: req.body.profile_image,
 				Country: req.body.Country,

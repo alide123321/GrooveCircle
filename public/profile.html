@@ -216,18 +216,18 @@
             });
 
             document.getElementById('obtain-new-token').addEventListener('click', function() {
-                $.ajax({
-                    url: '/refresh_token',
-                    data: {
-                        'userid': userid,
-                        'refresh_token': refresh_token
-                    }
-                }).done(function(data) {
+                $.get('/refresh_token', {
+                    
+                    userid: getCookie('spotify_id'),
+                    refresh_token: refresh_token
+                },function(data, status) {
+                    document.cookie = 'access_token=' + data.access_token + '; Max-Age=' + (60 * 60000) + '; path=/';
+                    document.cookie = 'refresh_token=' + data.refresh_token + '; Max-Age=' + (60 * 60000) + '; path=/';
                     oauthPlaceholder.innerHTML = oauthTemplate({
-                        access_token: getCookie('access_token'),
-                        refresh_token: getCookie('refresh_token')
+                        access_token: data.access_token,
+                        refresh_token: data.refresh_token
                     });
-                });
+                })
             });
         }
 

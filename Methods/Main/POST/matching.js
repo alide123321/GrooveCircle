@@ -50,7 +50,7 @@ router.post('/', async (req, res) => {
 	async function matched(matchQueue) {
 		// Remove the user from the Queue
 
-		await new Promise((resolve) => setTimeout(resolve, 6 * 1000)); // after 6 seconds, delete the chatroom
+		await new Promise((resolve) => setTimeout(resolve, 6 * 1000)); // after 6 seconds, remove the user from the queue
 
 		fetch(`http://localhost:${process.env.PORT}/removeFrom${state}Queue`, DeletefetchOptions);
 

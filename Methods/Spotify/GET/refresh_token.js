@@ -39,10 +39,13 @@ router.get('/', async (req, res) => {
 				const { access_token } = body;
 				users.updateOne(
 					{ 'spotify_info.refresh_token': refresh_token },
-					{ $set: { 'spotify_info.access_token': access_token } }
+					{
+						$set: {
+							'spotify_info.access_token': access_token,
+							'spotify_info.access_token_expiration': new Date(Date.now() + body.expires_in * 1000).getTime(),
+						},
+					}
 				);
-				res.clearCookie('access_token');
-				res.cookie('access_token', access_token, { maxAge: 60 * 60000, httpOnly: false });
 
 				res.send({
 					access_token: access_token,
