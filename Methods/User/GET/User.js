@@ -12,8 +12,6 @@ router.get('/', async (req, res) => {
 		});
 	}
 
-	console.log('userid:', userid);
-
 	const users = database.collection('users');
 	let user = await users.findOne({ 'spotify_info.id': userid });
 
@@ -26,9 +24,6 @@ router.get('/', async (req, res) => {
 	let time = Number(new Date(Date.now()).getTime());
 
 	if (user.spotify_info.access_token_expiration <= time) {
-		console.log('refreshing token');
-		console.log('time:', time);
-		console.log('user.spotify_info.access_token_expiration:', user.spotify_info.access_token_expiration);
 		const fetchOptions = {
 			method: 'GET',
 			headers: {
@@ -62,7 +57,7 @@ router.get('/', async (req, res) => {
 		user.spotify_info.access_token = body.access_token;
 		user.spotify_info.access_token_expiration = time;
 
-		if (req.cookies.spotify_id && userid === req.cookies.spotify_id) {
+		if (req.cookies.spotify_id && req.cookies.spotify_id === userid) {
 			res.cookie('access_token', body.access_token, { maxAge: body.expires_in * 1000, httpOnly: false });
 			res.cookie('refresh_token', body.refresh_token, { maxAge: body.expires_in * 1000, httpOnly: false });
 			res.cookie('spotify_id', user.spotify_info.id, { maxAge: body.expires_in * 1000, httpOnly: false });
