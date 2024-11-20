@@ -49,6 +49,8 @@ router.post('/', async (req, res) => {
 	async function matched(matchQueue) {
 		// Remove the user from the Queue
 
+		await new Promise((resolve) => setTimeout(resolve, 6 * 1000)); // after 6 seconds, delete the chatroom
+
 		fetch(`http://localhost:${process.env.PORT}/removeFrom${state}Queue`, DeletefetchOptions);
 
 		// create Chatroom and return the chatroom id
@@ -128,7 +130,7 @@ async function checkMatch(userid, state, currSong) {
 			res.json()
 		);
 
-		if (Queue.queue && Queue.queue.userids.length >= 5) return Queue.queue;
+		if (Queue.queue && Queue.queue.userids.length >= 3) return Queue.queue;
 		await new Promise((resolve) => setTimeout(resolve, checkEvery * 1000));
 	}
 

@@ -9,9 +9,9 @@ router.use(express.json());
 router.post('/', async (req, res) => {
 	const { userids } = req.body;
 
-	if (!userids || !Array.isArray(userids) || userids.length !== 5) {
+	if (!userids || !Array.isArray(userids) || userids.length !== 3) {
 		return res.status(400).json({
-			errmsg: 'userids is required, must be an array, and contain exactly 5 user IDs',
+			errmsg: 'userids is required, must be an array, and contain exactly 3 user IDs',
 		});
 	}
 
