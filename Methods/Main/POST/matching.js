@@ -122,7 +122,7 @@ async function checkMatch(userid, state, currSong) {
 		},
 	};
 
-	const queueLength = 5; // in seconds
+	const queueLength = 60; // in seconds
 	const checkEvery = 5; // in seconds
 
 	for (let i = 0; i < queueLength; i += checkEvery) {
