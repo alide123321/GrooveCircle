@@ -1,40 +1,35 @@
 const express = require('express');
-const fetch = require('node-fetch');
-const { database } = require("../../../dbClient");
+const { database } = require('../../../dbClient');
 const router = express.Router();
 
-router.get('/', (req, res) => {
-    const { userid } = req.headers; 
+router.get('/', async (req, res) => {
+    const { userid, friendid } = req.headers;
 
-    if (!userid) 
-        return res.status(400).json({
-            errmsg: "userid is required"
+    if (!userid || !friendid) {
+        return res.status(400).json({ errmsg: 'userid and friendid are required' });
+    }
+
+    try {
+        const messagesCollection = database.collection('messages');
+        const conversation = await messagesCollection.findOne({
+            participants: { $all: [userid, friendid] },
         });
 
-    let fetchOptions = {
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-            userid: userid
-        },
-    };
+        if (!conversation || !conversation.messages) {
+            return res.status(404).json({ messages: [] });
+        }
 
-    fetch(`http://localhost:${process.env.PORT}/User`, fetchOptions)
-    .then(response => response.json())
-    .then(body => {
-        if(!body.user || !body.user.message_list)
-            throw new Error("User not found");
-    
         res.status(200).json({
-            messageList: body.user.message_list
+            messages: conversation.messages.map(msg => ({
+                message: msg.message,
+                sender: msg.sender,
+                timestamp: msg.timestamp || new Date(), // Add timestamp if not present
+            })),
         });
-        
-    }).catch(error => {
-        console.error("Error fetching user:", error);
-        return res.status(404).json({
-            errmsg: error.message || "An error occurred"
-        });
-    });
+    } catch (error) {
+        console.error('Error retrieving messages:', error);
+        res.status(500).json({ errmsg: 'Failed to load conversation history.' });
+    }
 });
 
 module.exports = router;
