@@ -15,26 +15,32 @@
         <a href="/profile" class="nav-link">Profile</a>
     </div>
 
-    <!-- Add Friend Button -->
-    <div class="friend-button-container">
-        <button id="add-friend-button" class="btn btn-primary">Follow</button>
-        <textarea class="friend-search" id="friend-search" placeholder="Add a friend by their id..."></textarea>
-    </div>
 
     <!-- Container for profile information -->
     <div class="profile-layout">
+
         <div class="side-container">
+
             <h2>Friends</h2>
+
+            <!-- Add Friend Button -->
+            <div class="friend-button-container">
+                <input class="friend-search" id="friend-search" placeholder="Add a friend by their id..."></input>
+                <button id="add-friend-button" class="btn add-btn">Follow</button>
+            </div>
             <div id="friends-list" class="friends-list">
                 <!-- Friends will be displayed here -->
             </div>
         </div>
+
+        
 
         <!-- Handlebars template for displaying friend information -->
         <script id="friend-item-template" type="text/x-handlebars-template">
             <div class="friend-item">
                 <img class="friend-image" src="{{images.0.url}}" alt="Profile Picture"/>
                 <span class="friend-name">{{display_name}}</span>
+                <button id="remove-friend-button" class="btn remove-btn">-</button>
             </div>
         </script>
 
@@ -229,6 +235,28 @@
                     });
                 })
             });
+
+            document.getElementById('remove-friend-button').addEventListener('click', () => {
+                //const friendId = ;
+                const userid = getCookie('spotify_id');
+
+                fetch('/removefriend', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'userid': userid,
+                        'friendid': friendId
+                    }
+                }).then(response => {
+                    if (response.ok) {
+                        window.location.href = '/';
+                    } else {
+                        alert('Logout failed');
+                    }
+                });
+            });
+
+            
         }
 
         function getCookie(name) {
