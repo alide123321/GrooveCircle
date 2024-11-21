@@ -227,6 +227,26 @@ body {
     transition: all 0.2s ease;
 }
 
+.btn-groove {
+    width: 30%;
+    height: 30%;
+    text-decoration: none;
+    color: #ffffff;
+    margin-top: 20%;
+    padding: 5%;
+}
+
+.btn-groove:hover {
+    text-decoration: none;
+    color: #4006ed;
+    transform: scale(1.05);
+    transition: all 0.2s ease;
+}
+
+.btn-groove img {
+    margin-bottom: 1%;
+}
+
 .modal {
     /* position: fixed;  */
     z-index: 1000; 
