@@ -130,9 +130,6 @@
                         return response.json();
                         
                     }).then(data => {
-                        console.log('friendID', friendID);
-                        console.log('username', data.username);
-
                         const friendOption = `<option value="${friendID}">${data.username}</option>`;
                         friendSelector.append(friendOption);
                     });
