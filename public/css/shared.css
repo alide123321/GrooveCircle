@@ -203,6 +203,26 @@ body {
     background-color: #4006ed;
 }
 
+.btn-login {
+    background-color: #4006ed;
+    border-color: #4006ed;
+    width: 40%;
+    height: 40px;
+    border-radius: 40px;
+    color: #ffffff;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+.btn-login:hover {
+    background-color: #3205c4;
+    color: #ffffff;
+    transform: scale(1.02);
+    transition: all 0.2s ease;
+}
+
 .modal {
     /* position: fixed;  */
     z-index: 1000; 
