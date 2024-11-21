@@ -39,6 +39,7 @@ router.get('/', async (req, res) => {
 
         const songHistory = body.tracks.map((track) => ({
             name: track.track.name,
+            artist: track.track.artists.map((artist) => artist.name).join(', '), 
             id: track.track.id,
             image: track.track.album.images[2], 
         }));
