@@ -115,9 +115,28 @@
             friendSelector.append('<option value="me">My History</option>');
 
             if (response.friendsList && response.friendsList.length > 0) {
-                response.friendsList.forEach((friend) => {
-                    const friendOption = `<option value="${friend.id}">${friend.username}</option>`;
-                    friendSelector.append(friendOption);
+                response.friendsList.forEach((friendID) => {
+                    fetch('/Username', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'userid': friendID,
+                        }
+                    }).then(response => {
+                        if (!response.ok) {
+                            alert('Failed to  friend.');
+                        }
+
+                        return response.json();
+                        
+                    }).then(data => {
+                        console.log('friendID', friendID);
+                        console.log('username', data.username);
+
+                        const friendOption = `<option value="${friendID}">${data.username}</option>`;
+                        friendSelector.append(friendOption);
+                    });
+                    
                 });
             }
         },
