@@ -123,12 +123,9 @@
                             'userid': friendID,
                         }
                     }).then(response => {
-                        if (!response.ok) {
-                            alert('Failed to  friend.');
-                        }
+                        if (!response.ok) alert('Failed to  friend.');
 
                         return response.json();
-                        
                     }).then(data => {
                         const friendOption = `<option value="${friendID}">${data.username}</option>`;
                         friendSelector.append(friendOption);
