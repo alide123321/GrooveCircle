@@ -197,10 +197,14 @@ body {
 .btn-primary {
     background-color: #4006ed;
     border-color: #4006ed;
+    border-radius: 40px;
 }
 
 .btn-primary:hover {
-    background-color: #4006ed;
+    background-color: #3205c4;
+    color: #ffffff;
+    transform: scale(1.02);
+    transition: all 0.2s ease;
 }
 
 .btn-login {
