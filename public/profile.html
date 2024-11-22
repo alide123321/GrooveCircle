@@ -82,9 +82,50 @@
                             const friendHtml = friendTemplate(friendData);
                             friendsList.innerHTML += friendHtml;
                         }
+
+                        // remove friend functionality
+                        // for each remove button, add an event listener
+                        document.querySelectorAll('.remove-btn').forEach(button => {
+                            // when the button is clicked, get the friend's name and id
+                            button.addEventListener('click', function(e) {
+                                const friendItem = e.target.closest('.friend-item');
+                                const friendName = friendItem.querySelector('.friend-name').textContent;
+
+                                // if the user confirms, remove the friend
+                                if (confirm(`Are you sure you want to unfriend ${friendName}?`)) {
+                                    const friendId = friendData.id; 
+                                    removeFriend(friendId);
+                                }
+                            });
+                        });
                     }
                 } catch (error) {
                     console.error('Error loading friends list:', error);
+                }
+            }
+
+            async function removeFriend(friendId) {
+                const userid = getCookie('spotify_id');
+                try {
+                    const response = await fetch('/removeFriend', {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'userid': userid,
+                            'friendid': friendId
+                        }
+                    });
+
+                    const data = await response.json();
+                    if (data.errmsg) {
+                        alert(data.errmsg);
+                    } else {
+                        alert('Friend removed');
+                        window.location.reload();
+                    }
+                } catch (error) {
+                    console.error('Error removing friend:', error);
+                    alert(`Error removing friend: ${friendId}`);
                 }
             }
         </script>
@@ -235,28 +276,6 @@
                     });
                 })
             });
-
-            document.getElementById('remove-friend-button').addEventListener('click', () => {
-                //const friendId = ;
-                const userid = getCookie('spotify_id');
-
-                fetch('/removefriend', {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'userid': userid,
-                        'friendid': friendId
-                    }
-                }).then(response => {
-                    if (response.ok) {
-                        window.location.href = '/';
-                    } else {
-                        alert('Logout failed');
-                    }
-                });
-            });
-
-            
         }
 
         function getCookie(name) {
