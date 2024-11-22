@@ -18,7 +18,7 @@ router.post('/', async (req, res) => {
 	try {
 		//loops through each user ID and fetch user data from the internal service
 		for (const id of userids) {
-			const response = await fetch(`http://localhost:3000/user`, {
+			const response = await fetch(`http://localhost:${process.env.PORT}/user`, {
 				method: 'GET',
 				headers: { 'Content-Type': 'application/json', userid: id },
 			});
@@ -64,9 +64,10 @@ router.post('/', async (req, res) => {
 		});
 
 		await new Promise((resolve) => setTimeout(resolve, 300 * 1000)); // after 300 seconds (5 mins), delete the chatroom
-		chatroomsCollection.deleteOne({ _id: result.insertedId });
-		userids.forEach(async (userid) => {
-			user.updateOne({ 'spotify_info.id': userid }, { $pull: { message_list: result.insertedId } });
+
+		fetch(`http://localhost:${process.env.PORT}/removeChatroom`, {
+			method: 'DELETE',
+			headers: { chatroomid: result.insertedId },
 		});
 	} catch (error) {
 		console.error('Error creating chatroom:', error);
