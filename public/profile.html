@@ -52,6 +52,7 @@
                 try {
                     // Get friends list
                     const friendsResponse = await fetch('/Friends', {
+                        method: 'GET',
                         headers: {
                             'userid': userid
                         }
@@ -236,6 +237,7 @@
                 })
             });
 
+            /*
             document.getElementById('remove-friend-button').addEventListener('click', () => {
                 //const friendId = ;
                 const userid = getCookie('spotify_id');
@@ -255,6 +257,7 @@
                     }
                 });
             });
+            */
 
             
         }
