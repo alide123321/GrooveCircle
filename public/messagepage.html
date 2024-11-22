@@ -16,12 +16,24 @@
         }
 
         .friend-item {
+            display: flex;
+            align-items: center;
             padding: 10px;
             margin-bottom: 10px;
             border-radius: 5px;
             cursor: pointer;
             background-color: #333;
             color: white;
+            transition: background-color 0.3s ease;
+        }
+
+        .friend-item img {
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .friend-item:hover {
+            background-color: #444;
         }
 
         .friend-item.active {
@@ -60,6 +72,7 @@
     </style>
 </head>
 <body class="page">
+    <!-- Navigation bar -->
     <div id="nav-bar" class="nav-bar">
         <a href="/groove" class="nav-link">Groove</a>
         <a href="/home" class="nav-link">Home</a>
@@ -74,7 +87,7 @@
             <!-- Friends list -->
             <div style="width: 30%;">
                 <div id="friend-list">
-                    <!-- Friends will be added here -->
+                    <!-- Friends will be dynamically added here -->
                 </div>
             </div>
 
@@ -85,7 +98,7 @@
                 </div>
                 <div class="message-input-container">
                     <input id="message-input" type="text" placeholder="Type a message" class="form-control">
-                    <button id="send-message" class="btn btn-success" disabled>Send</button>
+                    <button id="send-message" class="btn btn-success">Send</button>
                 </div>
             </div>
         </div>
@@ -98,13 +111,14 @@
     <script>
         let activeFriendId = null;
 
-        //load the friends list
+        // Load the friends list
         async function loadFriendsList() {
             const userid = getCookie('spotify_id');
             const friendList = document.getElementById('friend-list');
-            friendList.innerHTML = ''; 
+            friendList.innerHTML = ''; // Clear previous list
 
             try {
+                // Fetch the friends list
                 const response = await fetch('/Friends', { headers: { userid } });
                 const data = await response.json();
 
@@ -113,61 +127,78 @@
                     return;
                 }
 
-                data.friendsList.forEach(friend => {
+                // Iterate over each friend ID and fetch username and profile picture
+                for (const friendId of data.friendsList) {
                     const listItem = document.createElement('div');
                     listItem.className = 'friend-item';
-                    listItem.dataset.friendId = friend.id; //attribute to store the friend ID
-                    listItem.innerHTML = `
-                        <img src="/images/default-profile.png" style="width: 40px; margin-right: 10px;">
-                        ${friend.username || friend.id}
-                    `;
+                    listItem.dataset.friendId = friendId;
 
+                    try {
+                        // Fetch username
+                        const usernameResponse = await fetch('/GET/username', { headers: { userid: friendId } });
+                        const usernameData = await usernameResponse.json();
+
+                        // Fetch profile image
+                        const iconResponse = await fetch('/GET/userIcon', { headers: { userid: friendId } });
+                        const iconData = await iconResponse.json();
+
+                        // Update list item with fetched data
+                        listItem.innerHTML = `
+                            <img src="${iconData.userIcon}" alt="Profile Picture" style="width: 40px;">
+                            <span>${usernameData.username || friendId}</span>
+                        `;
+                    } catch (error) {
+                        console.error(`Error fetching data for friend ${friendId}:`, error);
+
+                        // Fallback to default values if fetching fails
+                        listItem.innerHTML = `
+                            <img src="/images/default-profile.png" alt="Profile Picture" style="width: 40px;">
+                            <span>${friendId}</span>
+                        `;
+                    }
+
+                    // Add click event to load conversation
                     listItem.onclick = () => {
-                        //highlights selected friend
+                        // Highlight selected friend
                         document.querySelectorAll('.friend-item').forEach(item => item.classList.remove('active'));
                         listItem.classList.add('active');
-                        //set active friend ID and enable the send button
-                        activeFriendId = friend.id;
-                        document.getElementById('send-message').disabled = false;
-                        loadConversation(friend.id);
+
+                        // Set active friend ID and load conversation
+                        activeFriendId = friendId;
+                        loadConversation(friendId);
                     };
 
-                    friendList.appendChild(listItem);
-                });
+                    friendList.appendChild(listItem); // Add the friend to the list
+                }
             } catch (error) {
                 console.error('Error loading friends list:', error);
-                friendList.innerHTML = '<p>Failed to load friends list.</p>';
+                friendList.innerHTML = '<p>Failed to load friends list. Please try again later.</p>';
             }
         }
 
-        //load conversation with a friend
+        // Load conversation with a friend
         async function loadConversation(friendId) {
             const userid = getCookie('spotify_id');
             const conversationBox = document.getElementById('conversation-box');
-            conversationBox.innerHTML = ''; 
+            conversationBox.innerHTML = ''; // Clear previous messages
 
             try {
-                const response = await fetch(`/sendmessagedm/history`, {
-                    headers: {
-                        userid,
-                        friendid: friendId
-                    }
-                });
+                const response = await fetch(`/Conversation?userid=${userid}&friendid=${friendId}`);
                 const data = await response.json();
 
-                if (!data || !data.conversation) {
+                if (!data || !data.messages) {
                     conversationBox.innerHTML = '<p>No messages found.</p>';
                     return;
                 }
 
-                data.conversation.forEach(message => {
+                data.messages.forEach(message => {
                     const messageDiv = document.createElement('div');
                     messageDiv.className = message.sender === userid ? 'sent-message' : 'received-message';
                     messageDiv.innerHTML = `
                         <p>${message.message}</p>
                         <small>${new Date(message.timestamp).toLocaleString()}</small>
                     `;
-                    conversationBox.appendChild(messageDiv);
+                    conversationBox.appendChild(messageDiv); // Add each message to the box
                 });
             } catch (error) {
                 console.error('Error loading conversation:', error);
@@ -175,7 +206,7 @@
             }
         }
 
-        //send a message to friend
+        // Send a message to the active friend
         document.getElementById('send-message').addEventListener('click', async () => {
             const userid = getCookie('spotify_id');
             const messageInput = document.getElementById('message-input');
@@ -187,7 +218,7 @@
             }
 
             try {
-                const response = await fetch('/sendmessagedm/send', {
+                const response = await fetch('/SendMessageDM', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -207,15 +238,16 @@
             }
         });
 
-        //get cookie by name
+        // Get cookie by name
         function getCookie(name) {
             let value = "; " + document.cookie;
             let parts = value.split("; " + name + "=");
             if (parts.length === 2) return parts.pop().split(";").shift();
         }
 
-        //load friends list when the page loads
+        // Load friends list when the page loads
         window.onload = loadFriendsList;
     </script>
 </body>
 </html>
+

@@ -1,134 +1,96 @@
 const express = require('express');
-const { database } = require('../../../dbClient');
+const fetch = require('node-fetch');
+const { database } = require('../../../dbClient'); 
 const router = express.Router();
 
 router.use(express.json());
 
-//fetch conversation history
-router.get('/history', async (req, res) => {
-    const { userid, friendid } = req.headers;
-
-    if (!userid || !friendid) {
-        return res.status(400).json({
-            errmsg: 'userid and friendid are required'
-        });
-    }
-
-    try {
-        const messages = await database.collection('messages').findOne({
-            $or: [
-                { participants: [userid, friendid] },
-                { participants: [friendid, userid] }
-            ]
-        });
-
-        if (!messages) {
-            return res.status(404).json({ errmsg: 'No conversation history found.' });
-        }
-
-        //sort messages by timestamp 
-        const sortedMessages = messages.messages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-
-        res.status(200).json({
-            conversation: sortedMessages
-        });
-    } catch (error) {
-        console.error('Error fetching message history:', error);
-        res.status(500).json({
-            errmsg: 'Failed to fetch conversation history.'
-        });
-    }
-});
-
-// Send a message
-router.post('/send', async (req, res) => {
+// POST route for sending a message
+router.post('/', async (req, res) => {
     const { userid, friendid } = req.headers;
     const { messageContent } = req.body;
 
+    //validate input
     if (!userid || !friendid || !messageContent) {
         return res.status(400).json({
-            errmsg: 'userid, friendid, and messageContent are required'
+            errmsg: 'userid, friendid, and messageContent are required',
         });
     }
 
+    const fetchOptions = {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            userid,
+        },
+    };
+
     try {
+        //fetch user information
+        const userResponse = await fetch(`http://localhost:${process.env.PORT}/User`, fetchOptions);
+        const body = await userResponse.json();
+
+        if (!body.user) {
+            throw new Error('User not found');
+        }
+
+        if (!body.user.friends_list.includes(friendid)) {
+            throw new Error('User is not friends with the provided friendid');
+        }
+
         const messagesCollection = database.collection('messages');
+        const messageToInsert = {
+            messages: [
+                {
+                    message: messageContent,
+                    sender: userid,
+                    timestamp: new Date(), //timestamp to the message
+                },
+            ],
+            participants: [userid, friendid],
+            Chatroom: false,
+        };
+
+        //check if a conversation already exists
         const existingConversation = await messagesCollection.findOne({
             $or: [
                 { participants: [userid, friendid] },
-                { participants: [friendid, userid] }
-            ]
+                { participants: [friendid, userid] },
+            ],
         });
 
-        const newMessage = {
-            message: messageContent,
-            sender: userid,
-            timestamp: new Date()//added timestamp for messages
-        };
-
         if (existingConversation) {
-            //update existing conversation
+            // update existing conversation with the new message
             await messagesCollection.updateOne(
                 {
                     $or: [
                         { participants: [userid, friendid] },
-                        { participants: [friendid, userid] }
-                    ]
+                        { participants: [friendid, userid] },
+                    ],
                 },
-                { $push: { messages: newMessage } }
+                { $push: { messages: messageToInsert.messages[0] } } // Push the new message
             );
         } else {
-            //creates new conversation
-            const newConversation = {
-                participants: [userid, friendid],
-                messages: [newMessage],
-                Chatroom: false
-            };
-            await messagesCollection.insertOne(newConversation);
+            //create a new conversation
+            const insertResult = await messagesCollection.insertOne(messageToInsert);
+
+            //update users' message_list with the new conversation ID
+            const usersCollection = database.collection('users');
+            await usersCollection.updateOne(
+                { 'spotify_info.id': userid },
+                { $push: { message_list: insertResult.insertedId } }
+            );
+            await usersCollection.updateOne(
+                { 'spotify_info.id': friendid },
+                { $push: { message_list: insertResult.insertedId } }
+            );
         }
 
-        res.status(200).json({
-            success: true,
-            message: 'Message sent successfully'
-        });
+        res.status(200).send(`User with ID ${userid} sent message to ${friendid}: "${messageContent}"`);
     } catch (error) {
-        console.error('Error sending message:', error);
+        console.error('Error processing message:', error);
         res.status(500).json({
-            errmsg: 'Failed to send message.'
-        });
-    }
-});
-
-//delete a conversation (if needed in the future)
-router.delete('/delete', async (req, res) => {
-    const { userid, friendid } = req.headers;
-
-    if (!userid || !friendid) {
-        return res.status(400).json({
-            errmsg: 'userid and friendid are required'
-        });
-    }
-
-    try {
-        const result = await database.collection('messages').deleteOne({
-            $or: [
-                { participants: [userid, friendid] },
-                { participants: [friendid, userid] }
-            ]
-        });
-
-        if (result.deletedCount === 0) {
-            return res.status(404).json({ errmsg: 'No conversation found to delete.' });
-        }
-
-        res.status(200).json({
-            success: true,
-            message: 'Conversation deleted successfully'
-        });
-    } catch (error) {
-        console.error('Error deleting conversation:', error);
-        res.status(500).json({
-            errmsg: 'Failed to delete conversation.'
+            errmsg: error.message || 'An error occurred while sending the message.',
         });
     }
 });
