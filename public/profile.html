@@ -52,6 +52,7 @@
                 try {
                     // Get friends list
                     const friendsResponse = await fetch('/Friends', {
+                        method: 'GET',
                         headers: {
                             'userid': userid
                         }
