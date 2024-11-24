@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="/css/shared.css">
 </head>
 <body class="page">
+    <!-- Nav Bar -->
     <div id="nav-bar" class="nav-bar">
         <a href="/groove" class="nav-link">Groove</a>
         <a href="/home" class="nav-link">Home</a>
@@ -14,17 +15,164 @@
         <a href="/profile" class="nav-link">Profile</a>
     </div>
 
+    <!-- Groove Page -->
     <div class="container">
-        <h1>Groove</h1>
+        <div class="groove-page-container">
+            <h1>Groove</h1>
 
-        <!-- Groove Button -->
-        <a href="#">
-            <img src="/images/blueLogo.svg" alt="Groove" class="btn-groove">
-            <div class="btn-groove-text">Click to Groove!</div>
-        </a>
+            <!-- Groove Button -->
+            <div id="initial-view">
+                <div class="groove-button-container">
+                    <a href="#" class="btn-groove" id="groove-button">
+                        <img src="/images/blueLogo.svg" alt="Groove" class="groove-logo">
+                        <div class="btn-groove-text">Click to Groove!</div>
+                    </a>
+                </div>
+
+                <!-- Waveform Container -->
+                <div id="waveform-container" class="waveform-container" style="display: none;">
+                    <div class="wave"></div>
+                    <div class="wave"></div>
+                    <div class="wave"></div>
+                    <div class="wave"></div>
+                    <div class="wave"></div>
+                </div>
+            </div>
+
+            <!-- chatroom container (hidden by default) -->
+            <div id="chatroom-container" class="chatroom-container" style="display: none;">
+                <div class="messages-area" id="messages-area"></div>
+                <div class="input-area">
+                    <input type="text" id="message-input" placeholder="Type your message here...">
+                    <button id="send-button">Send</button>
+                </div>
+            </div>
+
+        </div>
     </div>
-
+    
     <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
     <script src="/js/shared.js"></script>
 </body>
 </html>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const grooveButton = document.getElementById('groove-button');
+        const waveformContainer = document.getElementById('waveform-container');
+        const initialView = document.getElementById('initial-view');
+        const chatroomContainer = document.getElementById('chatroom-container');
+        const messagesArea = document.getElementById('messages-area');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+
+        // repeat function to get cookie
+        // TODO: make into a service... 
+        function getCookie(name) {
+            let value = "; " + document.cookie; 
+            let parts = value.split("; " + name + "=");
+            if (parts.length == 2) return parts.pop().split(";").shift();
+        }
+
+        grooveButton.addEventListener('click', async function(e) {
+            e.preventDefault(); 
+
+            const userid = getCookie('spotify_id');
+            if (!userid) {
+                console.error('No user ID found');
+                return;
+            }
+
+            // show waveform
+            grooveButton.parentElement.style.display = 'none'; 
+            waveformContainer.style.display = 'flex'; 
+
+            try {
+                const response = await fetch('/matching', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'userid': userid
+                    }
+                });
+
+                if (!response.ok) throw new Error('calling matching failed');
+
+                const data = await response.json();
+                console.log('Matching response: ', data);
+
+                if (data.chatroomId) {
+                    // hide initial view and show chatroom 
+                    initialView.style.display = 'none';
+                    chatroomContainer.style.display = 'block'; 
+
+                    // load chatroom data
+                    loadChatroom(data.chatroomId);
+                }
+            } catch (error) {
+                console.error('Error', error); 
+                // reset UI on error 
+                waveformContainer.style.display = 'none'; 
+                grooveButton.parentElement.style.display = 'block'; 
+            }
+        });
+
+        async function loadChatroom(chatroomId) {
+            try {
+                const response = await fetch('/chatroom', {
+                    method: 'GET',
+                    headers: {
+                        'chatroomid': chatroomId
+                    }
+                });
+
+                if (!response.ok) throw new Error('loading chatroom failed'); 
+
+                const chatroom = await response.json();
+
+                // display messages
+                displayMessages(chatroom.messages); 
+
+                // message sending 
+                sendButton.onclick = () => sendMessage(chatroomId);
+                messageInput.onkeypress = (e) => {
+                    if (e.key === 'Enter') sendMessage(chatroomId);
+                };
+            } catch (error) {
+                console.error('Error loading chatroom: ', error);
+            }
+        }
+
+        function displayMessages(messages) {
+            messagesArea.innerHTML = messages.map(msg => `
+                    <div class="message">
+                        <strong>${msg.sender}:</strong> ${msg.content}
+                    </div>
+                `).join('');
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        }
+
+        async function sendMessage(chatroomId) {
+            const content = messageInput.value.trim(); 
+            if (!content) return; 
+
+            try {
+                await fetch('/sendMessageGroup', {
+                    method: 'POST', 
+                    headeers: {
+                        'Content-Type': 'application/json',
+                        'userid': userid,
+                        'chatroomid': chatroomId
+                    },
+                    body: JSON.stringify({ messageContent: content })
+                });
+
+                messageInput.value = ''; 
+
+                // refresh chatroom so new message is displayed
+                await loadChatroom(chatroomId);
+            } catch (error) {
+                console.error('Error sending message:', error);
+            }
+        }
+    });
+</script>
