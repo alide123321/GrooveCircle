@@ -49,7 +49,7 @@ router.get('/', async (req, res) => {
 			{
 				$set: {
 					'spotify_info.access_token': body.access_token,
-					'spotify_info.access_token_expiration': time,
+					'spotify_info.access_token_expiration': (time += body.expires_in * 1000),
 				},
 			}
 		);

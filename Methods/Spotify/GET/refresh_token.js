@@ -50,6 +50,7 @@ router.get('/', async (req, res) => {
 				res.send({
 					access_token: access_token,
 					refresh_token: refresh_token,
+					expires_in: body.expires_in,
 				});
 			}
 		})
