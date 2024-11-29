@@ -17,6 +17,7 @@ router.post('/', (req, res) => {
 			blocked_list: [],
 			activitie_list: [],
 			username: req.body.username,
+			isInQueue: false,
 			spotify_info: {
 				id: req.body.id,
 				refresh_token: req.body.refresh_token,
