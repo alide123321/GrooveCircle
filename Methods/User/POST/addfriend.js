@@ -5,7 +5,6 @@ const { database } = require('../../../dbClient');
 
 // POST route for adding a friend
 router.post('/', async (req, res) => {
-	const users = database.collection('users');
 	const { userid, friendid } = req.headers;
 
 	if (!userid || !friendid)
@@ -35,6 +34,8 @@ router.post('/', async (req, res) => {
 	const friend_response = await fetch(`http://localhost:${process.env.PORT}/Friends`, fetchOptions);
 	if (!friend_response.ok) return res.status(404).json({ errmsg: 'issue with finding friend friends list' });
 	const friend_body = await friend_response.json();
+
+	const users = database.collection('users');
 
 	// Add friend to user's friends list
 	if (!body.friendsList.includes(friendid))

@@ -13,6 +13,7 @@ router.post('/', (req, res) => {
 	const user = users
 		.insertOne({
 			friends_list: [],
+			pending_friends_list: [],
 			message_list: [],
 			blocked_list: [],
 			activitie_list: [],

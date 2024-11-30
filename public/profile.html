@@ -31,9 +31,13 @@
             <div id="friends-list" class="friends-list">
                 <!-- Friends will be displayed here -->
             </div>
-        </div>
 
-        
+            <h2>Pending Friends</h2>
+
+            <div id="pending-friends-list" class="pending-friends-list">
+                <!-- Pending Friends will be displayed here -->
+            </div>
+        </div>
 
         <!-- Handlebars template for displaying friend information -->
         <script id="friend-item-template" type="text/x-handlebars-template">
@@ -41,6 +45,15 @@
                 <img class="friend-image" src="{{images.0.url}}" alt="Profile Picture"/>
                 <span class="friend-name" data-id="{{id}}">{{display_name}}</span>
                 <button id="remove-friend-button" class="btn remove-btn">-</button>
+            </div>
+        </script>
+
+        <script id="pending-friend-item-template" type="text/x-handlebars-template">
+            <div class="friend-item">
+                <img class="friend-image" src="{{images.0.url}}" alt="Profile Picture"/>
+                <span class="friend-name" data-id="{{id}}">{{display_name}}</span>
+                <button id="accept-pending-friend-button" class="btn add-btn">+</button>
+                <button id="remove-pending-friend-button" class="btn remove-btn">-</button>
             </div>
         </script>
 
@@ -103,6 +116,113 @@
                 } catch (error) {
                     console.error('Error loading friends list:', error);
                 }
+            }
+
+            async function loadPendingFriendsList() {
+                const userid = getCookie('spotify_id');
+                try {
+                    // Get friends list
+                    const friendsResponse = await fetch('/FriendRequests', {
+                        method: 'GET',
+                        headers: {
+                            userid: userid
+                        }
+                    });
+                    const friendsData = await friendsResponse.json();
+
+                    if (!friendsData.pending_friends_list) return;
+
+                    const pendingFriendsList = document.getElementById('pending-friends-list'); 
+                    const friendTemplate = Handlebars.compile(document.getElementById('pending-friend-item-template').innerHTML);
+
+                    // Clear existing friends list
+                    pendingFriendsList.innerHTML = '';
+
+                    // fetch and display each friend's info 
+                    for (const friendId of friendsData.pending_friends_list) {
+                        const response = await fetch('https://api.spotify.com/v1/users/' + friendId, {
+                            headers: {
+                                'Authorization': 'Bearer ' + getCookie('access_token')
+                            }
+                        });
+                        const friendData = await response.json();
+
+                        // add default image if none exists
+                        if (!friendData.images || friendData.images.length === 0) {
+                            friendData.images = [{url: '/images/default-profile.png'}];
+                        }
+
+                        const friendHtml = friendTemplate(friendData);
+                        pendingFriendsList.innerHTML += friendHtml;
+                    }
+
+                    document.querySelectorAll('.add-btn').forEach(button => {
+                        // when the button is clicked, get the friend's name and id
+                        button.addEventListener('click', function(e) {
+                            const friendItem = e.target.closest('.friend-item');
+                            const friendId = friendItem.querySelector('.friend-name').getAttribute('data-id');
+
+                            fetch('/addfriend', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'userid': userid,
+                                    'friendid': friendId
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                removePendingFriend(friendId);
+                                if (data.errmsg) alert(data.errmsg);
+                                window.location.reload();
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                alert('Error following account');
+                            });
+                        });
+                    });
+
+                    // remove friend functionality
+                    // for each remove button, add an event listener
+                    document.querySelectorAll('.remove-btn').forEach(button => {
+                        // when the button is clicked, get the friend's name and id
+                        button.addEventListener('click', function(e) {
+                            const friendItem = e.target.closest('.friend-item');
+                            const friendName = friendItem.querySelector('.friend-name').textContent;
+                            const friendId = friendItem.querySelector('.friend-name').getAttribute('data-id');
+
+                            removePendingFriend(friendId);
+ 
+                        });
+                    });
+                    
+                } catch (error) {
+                    console.error('Error loading friends list:', error);
+                }
+            }
+
+            async function removePendingFriend(friendId) {
+                const userid = getCookie('spotify_id');
+
+                fetch('/removePendingFriend', {
+                    method: 'Delete',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'userid': userid,
+                        'friendid': friendId
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.errmsg) alert(data.errmsg);
+                    window.location.reload();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error following account');
+                });
+                
             }
 
             async function removeFriend(friendId) {
@@ -186,6 +306,7 @@
             if (checkAuth()) {
                 loadProfileData();
                 loadFriendsList();
+                loadPendingFriendsList();
             }
         };
 
@@ -224,7 +345,7 @@
                 const friendId = document.getElementById('friend-search').value;
                 const userid = getCookie('spotify_id');
 
-                fetch('/addfriend', {
+                fetch('/requestFriend', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
