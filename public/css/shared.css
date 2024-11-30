@@ -365,6 +365,7 @@ body {
     border-radius: .8%; 
 }
 
+/* messagepage.html specific */
 .message-main-container {
     width: 80%;
     margin: auto;
@@ -429,6 +430,8 @@ body {
     flex: 1;
     margin-right: 10px;
 }
+
+/* messagepage.html end */
 
 .messages-area {
     height : 60%;
