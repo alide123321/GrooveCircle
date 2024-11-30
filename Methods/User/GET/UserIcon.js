@@ -26,7 +26,7 @@ router.get('/', async (req, res) => {
 
 	userinfo = (await userinfo.json()).user;
 
-	const response = await fetch('https://api.spotify.com/v1/users/' + friendId, {
+	let response = await fetch('https://api.spotify.com/v1/users/' + userid, {
 		headers: {
 			Authorization: 'Bearer ' + userinfo.spotify_info.access_token,
 		},
