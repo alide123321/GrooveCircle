@@ -197,7 +197,8 @@ body {
 .btn-primary {
     background-color: #323ccd;
     border-color: #323ccd;
-    border-radius: 40px;
+    border-radius: 10px;
+    padding: 5px 10px;
 }
 
 .btn-primary:hover {
@@ -363,6 +364,74 @@ body {
     border: 1% solid #ccc;
     border-radius: .8%; 
 }
+
+/* messagepage.html specific */
+.message-main-container {
+    width: 80%;
+    margin: auto;
+    margin-top: 20px;
+    background-color: #1c1c1c;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+.message-friend-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #333;
+    color: white;
+    transition: background-color 0.3s ease;
+}
+
+.message-friend-item img {
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.message-friend-item:hover {
+    background-color: #444;
+}
+
+.message-friend-item.active {
+    background-color: #2c3e50;
+}
+
+.message-conversation-box {
+    height: 300px;
+    overflow-y: auto;
+    background-color: #2c2c2c;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.message-sent-message {
+    text-align: right;
+    color: green;
+    margin: 5px 0;
+}
+
+.message-received-message {
+    text-align: left;
+    color: white;
+    margin: 5px 0;
+}
+
+.message-input-container {
+    margin-top: 10px;
+    display: flex;
+}
+
+#message-input {
+    flex: 1;
+    margin-right: 10px;
+}
+
+/* messagepage.html end */
 
 .messages-area {
     height : 60%;

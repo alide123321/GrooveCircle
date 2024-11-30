@@ -4,72 +4,6 @@
     <title>Messages - GrooveCircle</title>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="/css/shared.css">
-    <style>
-        .main-container {
-            width: 80%;
-            margin: auto;
-            margin-top: 20px;
-            background-color: #1c1c1c;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
-        }
-
-        .friend-item {
-            display: flex;
-            align-items: center;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            background-color: #333;
-            color: white;
-            transition: background-color 0.3s ease;
-        }
-
-        .friend-item img {
-            border-radius: 50%;
-            margin-right: 10px;
-        }
-
-        .friend-item:hover {
-            background-color: #444;
-        }
-
-        .friend-item.active {
-            background-color: #2c3e50;
-        }
-
-        .conversation-box {
-            height: 300px;
-            overflow-y: auto;
-            background-color: #2c2c2c;
-            padding: 10px;
-            border-radius: 5px;
-        }
-
-        .sent-message {
-            text-align: right;
-            color: green;
-            margin: 5px 0;
-        }
-
-        .received-message {
-            text-align: left;
-            color: white;
-            margin: 5px 0;
-        }
-
-        .message-input-container {
-            margin-top: 10px;
-            display: flex;
-        }
-
-        #message-input {
-            flex: 1;
-            margin-right: 10px;
-        }
-    </style>
 </head>
 <body class="page">
     <!-- Navigation bar -->
@@ -81,7 +15,7 @@
         <a href="/profile" class="nav-link">Profile</a>
     </div>
 
-    <div class="main-container">
+    <div class="message-main-container">
         <h2>Messages</h2>
         <div style="display: flex; gap: 20px;">
             <!-- Friends list -->
@@ -93,12 +27,12 @@
 
             <!-- Conversation box -->
             <div style="width: 70%;">
-                <div id="conversation-box" class="conversation-box">
+                <div id="conversation-box" class="message-conversation-box">
                     <p>Select a friend to start chatting.</p>
                 </div>
                 <div class="message-input-container">
                     <input id="message-input" type="text" placeholder="Type a message" class="form-control">
-                    <button id="send-message" class="btn btn-success">Send</button>
+                    <button id="send-message" class="btn-primary">Send</button>
                 </div>
             </div>
         </div>
