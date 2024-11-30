@@ -64,6 +64,7 @@ router.post('/', async (req, res) => {
 		await new Promise((resolve) => setTimeout(resolve, 6 * 1000)); // after 6 seconds, remove the user from the queue too allow for other users to be matched
 
 		fetch(`http://localhost:${process.env.PORT}/removeFrom${state}Queue`, DeletefetchOptions);
+		fetch(`http://localhost:${process.env.PORT}/leaveMatching`, DeletefetchOptions);
 
 		// create Chatroom and return the chatroom id
 		const CreateChatroomfetchOptions = {
@@ -83,17 +84,20 @@ router.post('/', async (req, res) => {
 		return res.status(200).send({ msg: 'Match found', chatroomId: `${Chatroom.chatroomId}` });
 	}
 
+	let loop = true;
+
 	// add user to queue
 	async function addToQueue() {
 		let addToQueueResponse = await fetch(`http://localhost:${process.env.PORT}/addTo${state}Queue`, PostfetchOptions);
 		if (!addToQueueResponse.ok) {
 			console.log(addToQueueResponse);
 			res.status(404).send(`issue with adding user to ${state} queue`);
+			fetch(`http://localhost:${process.env.PORT}/leaveMatching`, DeletefetchOptions);
+			loop = false;
 			return false;
 		}
 		return true;
 	}
-	let loop = true;
 
 	for (let i = 0; i < queueNames.length - 1; i++) {
 		state = queueNames[i];
