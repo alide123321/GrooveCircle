@@ -39,7 +39,7 @@
         <script id="friend-item-template" type="text/x-handlebars-template">
             <div class="friend-item">
                 <img class="friend-image" src="{{images.0.url}}" alt="Profile Picture"/>
-                <span class="friend-name">{{display_name}}</span>
+                <span class="friend-name" data-id="{{id}}">{{display_name}}</span>
                 <button id="remove-friend-button" class="btn remove-btn">-</button>
             </div>
         </script>
@@ -91,10 +91,10 @@
                             button.addEventListener('click', function(e) {
                                 const friendItem = e.target.closest('.friend-item');
                                 const friendName = friendItem.querySelector('.friend-name').textContent;
+                                const friendId = friendItem.querySelector('.friend-name').getAttribute('data-id');
 
                                 // if the user confirms, remove the friend
                                 if (confirm(`Are you sure you want to unfriend ${friendName}?`)) {
-                                    const friendId = friendData.id; 
                                     removeFriend(friendId);
                                 }
                             });
@@ -121,7 +121,7 @@
                     if (data.errmsg) {
                         alert(data.errmsg);
                     } else {
-                        alert('Friend removed');
+                        alert(data.msg);
                         window.location.reload();
                     }
                 } catch (error) {
@@ -237,7 +237,6 @@
                     if (data.errmsg) {
                         alert(data.errmsg);
                     } else {
-                        alert('Account followed');
                         document.getElementById('friend-search').value = '';
                         window.location.reload();
                     }
@@ -277,6 +276,8 @@
                     });
                 })
             });
+
+            
         }
 
         function getCookie(name) {

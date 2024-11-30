@@ -15,7 +15,7 @@ router.delete('/', async (req, res) => {
 
 	if (userid === friendid)
 		return res.status(400).send({
-			errmsg: 'User cannot add themselves as a friend',
+			errmsg: 'User cannot remove themselves as a friend',
 		});
 
 	let fetchOptions = {
@@ -37,13 +37,16 @@ router.delete('/', async (req, res) => {
 	response = await fetch(`http://localhost:${process.env.PORT}/user`, fetchOptions);
 	if (response.status !== 200) {
 		return res.status(404).send({
-			errmsg: 'User not found',
+			errmsg: 'Friend not found',
 		});
 	}
 
 	await users.updateOne({ 'spotify_info.id': userid }, { $pull: { friends_list: friendid } });
+	await users.updateOne({ 'spotify_info.id': friendid }, { $pull: { friends_list: userid } });
 
-	res.status(200).send(`User with ID \'${userid}\' removed \'${friendid}\' as a friend`);
+	res.status(200).send({
+		msg: `successfully removed friend with ID: ${friendid}`,
+	});
 });
 
 module.exports = router;
