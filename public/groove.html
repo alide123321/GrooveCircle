@@ -40,11 +40,11 @@
             </div>
 
             <!-- chatroom container (hidden by default) -->
-            <div id="chatroom-container" class="chatroom-container" style="display: none;">
-                <div class="messages-area" id="messages-area"></div>
-                <div class="input-area">
-                    <input type="text" id="message-input" placeholder="Type your message here...">
-                    <button id="send-button">Send</button>
+            <div id="chatroom-container" class="message-main-container" >
+                <div class="message-conversation-box" id="messages-area"></div>
+                <div class="message-input-container">
+                    <input type="text" id="message-input" class="form-control" placeholder="Type your message here...">
+                    <button id="send-button" class="btn btn-primary">Send</button>
                 </div>
             </div>
 
@@ -64,6 +64,7 @@
         const messagesArea = document.getElementById('messages-area');
         const messageInput = document.getElementById('message-input');
         const sendButton = document.getElementById('send-button');
+        let activeChatroomId = null;
 
         // repeat function to get cookie
         function getCookie(name) {
@@ -100,12 +101,13 @@
                 console.log('Matching response: ', data);
 
                 if (data.chatroomId) {
+                    activeChatroomId = data.chatroomId;
                     // hide initial view and show chatroom 
                     initialView.style.display = 'none';
                     chatroomContainer.style.display = 'block'; 
 
                     // load chatroom data
-                    loadChatroom(data.chatroomId);
+                    await loadChatroom(activeChatroomId);
                 }
             } catch (error) {
                 console.error('Error', error); 
@@ -117,20 +119,16 @@
 
         async function loadChatroom(chatroomId) {
             try {
-                const response = await fetch('/chatroom', {
-                    method: 'GET',
-                    headers: {
-                        'chatroomid': chatroomId
-                    }
-                });
+                const response = await fetch(`/Conversation?userid=${getCookie('spotify_id')}&chatroomid=${chatroomId}`);
+                const data = await response.json();
+                
+                if (!data || !data.messages) {
+                    messagesArea.innerHTML = '<p>No messages yet. Start the conversation.</p>';
+                    return;
+                }
 
-                if (!response.ok) throw new Error('loading chatroom failed'); 
-
-                const chatroom = await response.json();
-
-                // display messages
-                displayMessages(chatroom.messages); 
-
+                displayMessages(data.messages);
+                messagesArea.scrollTop = messagesArea.scrollHeight;
                 // message sending 
                 sendButton.onclick = () => sendMessage(chatroomId);
                 messageInput.onkeypress = (e) => {
@@ -138,40 +136,65 @@
                 };
             } catch (error) {
                 console.error('Error loading chatroom: ', error);
+                messagesArea.innerHTML = '<p>Failed to load conversation history.</p>';
             }
         }
 
         function displayMessages(messages) {
-            messagesArea.innerHTML = messages.map(msg => `
-                    <div class="message">
-                        <strong>${msg.sender}:</strong> ${msg.content}
+            messagesArea.innerHTML = messages.map(message => {
+                const isCurrentUser = message.sender === getCookie('spotify_id');
+                return `
+                    <div class="${isCurrentUser ? 'message-sent-message' : 'message-received-message'}">
+                        <p>${message.message || message.content}</p>
+                        <small>${new Date(message.timestamp).toLocaleTimeString()}</small>
                     </div>
-                `).join('');
-            messagesArea.scrollTop = messagesArea.scrollHeight;
+                `}).join('');
         }
 
-        async function sendMessage(chatroomId) {
-            const content = messageInput.value.trim(); 
-            if (!content) return; 
+        // Handle send message button click
+        sendButton.addEventListener('click', sendMessage); 
+
+        // Handle enter key press in input
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage(); 
+            }
+        }); 
+
+        async function sendMessage() {
+            const messageContent = messageInput.value.trim(); 
+            const userid = getCookie('spotify_id');
+
+            if (!activeChatroomId || !messageContent) {
+                console.error('Missing chatroomId or message content'); 
+                return; 
+            }
 
             try {
-                await fetch('/sendMessageGroup', {
+                const response = await fetch('/sendMessageGroup', {
                     method: 'POST', 
                     headeers: {
                         'Content-Type': 'application/json',
                         'userid': userid,
-                        'chatroomid': chatroomId
+                        'chatroomid': activeChatroomId
                     },
-                    body: JSON.stringify({ messageContent: content })
+                    body: JSON.stringify({ messageContent })
                 });
 
-                messageInput.value = ''; 
+                if (!response.ok) throw new Error('Failed to send message'); 
 
-                // refresh chatroom so new message is displayed
-                await loadChatroom(chatroomId);
+                messageInput.value = ''; 
+                await loadChatroom(activeChatroomId);
             } catch (error) {
                 console.error('Error sending message:', error);
             }
         }
+
+        // auto-refresh chatroom every 3 seconds
+        setInterval(() => {
+            if (activeChatroomId) {
+                loadChatroom(activeChatroomId);
+            }
+        }, 3000);
     });
 </script>
