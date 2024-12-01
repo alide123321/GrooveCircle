@@ -220,8 +220,10 @@
                     alert('Error following account');
                 });
 
-                loadFriendsList();
-                loadPendingFriendsList();
+                setTimeout(() => {
+                    loadFriendsList();
+                    loadPendingFriendsList();
+                }, 500);
             }
 
             async function removeFriend(friendId) {
@@ -247,8 +249,10 @@
                     alert(`Error removing friend: ${friendId}`);
                 }
 
-                loadFriendsList();
-                loadPendingFriendsList();
+                setTimeout(() => {
+                    loadFriendsList();
+                    loadPendingFriendsList();
+                }, 500);
             }
         </script>
 
@@ -368,8 +372,10 @@
                     document.getElementById('friend-search').value = '';
                 });
 
-                loadFriendsList();
-                loadPendingFriendsList();
+                setTimeout(() => {
+                    loadFriendsList();
+                    loadPendingFriendsList();
+                }, 500);
             })
 
             // Add event listeners
