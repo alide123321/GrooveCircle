@@ -174,7 +174,6 @@
                             .then(data => {
                                 removePendingFriend(friendId);
                                 if (data.errmsg) alert(data.errmsg);
-                                window.location.reload();
                             })
                             .catch(error => {
                                 console.error('Error:', error);
@@ -193,7 +192,6 @@
                             const friendId = friendItem.querySelector('.friend-name').getAttribute('data-id');
 
                             removePendingFriend(friendId);
- 
                         });
                     });
                     
@@ -216,13 +214,15 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.errmsg) alert(data.errmsg);
-                    window.location.reload();
+                    //window.location.reload();
                 })
                 .catch(error => {
                     console.error('Error:', error);
                     alert('Error following account');
                 });
-                
+
+                loadFriendsList();
+                loadPendingFriendsList();
             }
 
             async function removeFriend(friendId) {
@@ -242,12 +242,15 @@
                         alert(data.errmsg);
                     } else {
                         alert(data.msg);
-                        window.location.reload();
+                        //window.location.reload();
                     }
                 } catch (error) {
                     console.error('Error removing friend:', error);
                     alert(`Error removing friend: ${friendId}`);
                 }
+                
+                loadFriendsList();
+                loadPendingFriendsList();
             }
         </script>
 
@@ -359,7 +362,6 @@
                         alert(data.errmsg);
                     } else {
                         document.getElementById('friend-search').value = '';
-                        window.location.reload();
                     }
                 })
                 .catch(error => {
@@ -367,6 +369,9 @@
                     alert('Error following account');
                     document.getElementById('friend-search').value = '';
                 });
+
+                loadFriendsList();
+                loadPendingFriendsList();
             })
 
             // Add event listeners

@@ -21,19 +21,12 @@ router.post('/', async (req, res) => {
 		method: 'GET',
 		headers: {
 			'Content-Type': 'application/json',
-			userid: userid,
+			userid: friendid,
 		},
 	};
 
-	let response = await fetch(`http://localhost:${process.env.PORT}/Friends`, fetchOptions);
-	if (!response.ok) return res.status(404).json({ errmsg: 'issue with finding Users friends list' });
-	response = await response.json();
-
-	if (response.friendsList.includes(friendid))
-		return res.status(400).json({ errmsg: `You are already friends with this user` });
-
 	// Fetch friend data
-	fetchOptions.headers.userid = friendid;
+
 	let friend_response = await fetch(`http://localhost:${process.env.PORT}/FriendRequests`, fetchOptions);
 	if (!friend_response.ok) return res.status(404).json({ errmsg: 'issue with finding friends FriendRequests list' });
 	friend_response = await friend_response.json();
@@ -41,9 +34,18 @@ router.post('/', async (req, res) => {
 	if (friend_response.pending_friends_list.includes(userid))
 		return res.status(400).json({ errmsg: `You already have a pending request with this user` });
 
+	fetchOptions.headers.userid = userid;
+	let response = await fetch(`http://localhost:${process.env.PORT}/Friends`, fetchOptions);
+	if (!response.ok) return res.status(404).json({ errmsg: 'issue with finding Users friends list' });
+	response = await response.json();
+
+	if (response.friendsList.includes(friendid))
+		return res.status(400).json({ errmsg: `You are already friends with this user` });
+
 	response = await fetch(`http://localhost:${process.env.PORT}/FriendRequests`, fetchOptions);
 	if (!response.ok) return res.status(404).json({ errmsg: 'issue with finding Users FriendRequests list' });
 	response = await response.json();
+	console.log(response.pending_friends_list);
 
 	if (response.pending_friends_list.includes(friendid)) {
 		let PostFetchOptions = {
@@ -62,6 +64,7 @@ router.post('/', async (req, res) => {
 				friendid: friendid,
 			},
 		};
+		console.log('deleting pending friend request');
 		fetch(`http://localhost:${process.env.PORT}/removePendingFriend`, DeletefetchOptions);
 		let addFriendRes = await fetch(`http://localhost:${process.env.PORT}/addfriend`, PostFetchOptions);
 		if (!addFriendRes.ok) return res.status(404).json({ errmsg: 'issue with adding friend' });
