@@ -119,7 +119,11 @@
 
         async function loadChatroom(chatroomId) {
             try {
-                const response = await fetch(`/Conversation?userid=${getCookie('spotify_id')}&chatroomid=${chatroomId}`);
+                const response = await fetch(`/chatroom`, {
+                    headers: {
+                        'chatroomid': chatroomId
+                    }
+                });
                 const data = await response.json();
                 
                 if (!data || !data.messages) {
@@ -129,11 +133,6 @@
 
                 displayMessages(data.messages);
                 messagesArea.scrollTop = messagesArea.scrollHeight;
-                // message sending 
-                sendButton.onclick = () => sendMessage(chatroomId);
-                messageInput.onkeypress = (e) => {
-                    if (e.key === 'Enter') sendMessage(chatroomId);
-                };
             } catch (error) {
                 console.error('Error loading chatroom: ', error);
                 messagesArea.innerHTML = '<p>Failed to load conversation history.</p>';
@@ -145,10 +144,12 @@
                 const isCurrentUser = message.sender === getCookie('spotify_id');
                 return `
                     <div class="${isCurrentUser ? 'message-sent-message' : 'message-received-message'}">
-                        <p>${message.message || message.content}</p>
+                        <p>${message.message}</p>
                         <small>${new Date(message.timestamp).toLocaleTimeString()}</small>
                     </div>
-                `}).join('');
+                `;
+            }).join('');
+            messagesArea.scrollTop = messagesArea.scrollHeight;
         }
 
         // Handle send message button click
@@ -173,7 +174,7 @@
             try {
                 const response = await fetch('/sendMessageGroup', {
                     method: 'POST', 
-                    headeers: {
+                    headers: {
                         'Content-Type': 'application/json',
                         'userid': userid,
                         'chatroomid': activeChatroomId
