@@ -68,7 +68,7 @@ router.post('/', async (req, res) => {
                         { participants: [friendid, userid] },
                     ],
                 },
-                { $push: { messages: messageToInsert.messages[0] } } // Push the new message
+                { $push: { messages: messageToInsert.messages[0] } } //push the new message
             );
         } else {
             //create a new conversation

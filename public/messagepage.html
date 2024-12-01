@@ -52,7 +52,6 @@
             friendList.innerHTML = ''; // Clear previous list
 
             try {
-                // Fetch the friends list
                 const response = await fetch('/Friends', { headers: { userid } });
                 const data = await response.json();
 
@@ -61,48 +60,45 @@
                     return;
                 }
 
-                // Iterate over each friend ID and fetch username and profile picture
                 for (const friendId of data.friendsList) {
                     const listItem = document.createElement('div');
-                    listItem.className = 'friend-item';
+                    listItem.className = 'message-friend-item';
                     listItem.dataset.friendId = friendId;
 
                     try {
-                        // Fetch username
-                        const usernameResponse = await fetch('/GET/username', { headers: { userid: friendId } });
-                        const usernameData = await usernameResponse.json();
+                        const usernameData = await fetch('/Username', {
+                            method: 'GET',
+                            headers: {
+                                'userid': friendId
+                            }   
+                        }).then(res => res.json());
+                        const iconData = await fetch('/UserIcon', {
+                            method: 'GET',
+                            headers: {
+                                'userid': friendId
+                            }   
+                        }).then(res => res.json());
 
-                        // Fetch profile image
-                        const iconResponse = await fetch('/GET/userIcon', { headers: { userid: friendId } });
-                        const iconData = await iconResponse.json();
-
-                        // Update list item with fetched data
                         listItem.innerHTML = `
                             <img src="${iconData.userIcon}" alt="Profile Picture" style="width: 40px;">
                             <span>${usernameData.username || friendId}</span>
                         `;
                     } catch (error) {
                         console.error(`Error fetching data for friend ${friendId}:`, error);
-
-                        // Fallback to default values if fetching fails
                         listItem.innerHTML = `
                             <img src="/images/default-profile.png" alt="Profile Picture" style="width: 40px;">
                             <span>${friendId}</span>
                         `;
                     }
 
-                    // Add click event to load conversation
                     listItem.onclick = () => {
-                        // Highlight selected friend
-                        document.querySelectorAll('.friend-item').forEach(item => item.classList.remove('active'));
+                        document.querySelectorAll('.message-friend-item').forEach(item => item.classList.remove('active'));
                         listItem.classList.add('active');
-
-                        // Set active friend ID and load conversation
                         activeFriendId = friendId;
                         loadConversation(friendId);
                     };
 
-                    friendList.appendChild(listItem); // Add the friend to the list
+                    friendList.appendChild(listItem);
                 }
             } catch (error) {
                 console.error('Error loading friends list:', error);
@@ -114,7 +110,7 @@
         async function loadConversation(friendId) {
             const userid = getCookie('spotify_id');
             const conversationBox = document.getElementById('conversation-box');
-            conversationBox.innerHTML = ''; // Clear previous messages
+            conversationBox.innerHTML = '';
 
             try {
                 const response = await fetch(`/Conversation?userid=${userid}&friendid=${friendId}`);
@@ -127,12 +123,12 @@
 
                 data.messages.forEach(message => {
                     const messageDiv = document.createElement('div');
-                    messageDiv.className = message.sender === userid ? 'sent-message' : 'received-message';
+                    messageDiv.className = message.sender === userid ? 'message-sent-message' : 'message-received-message';
                     messageDiv.innerHTML = `
                         <p>${message.message}</p>
                         <small>${new Date(message.timestamp).toLocaleString()}</small>
                     `;
-                    conversationBox.appendChild(messageDiv); // Add each message to the box
+                    conversationBox.appendChild(messageDiv);
                 });
             } catch (error) {
                 console.error('Error loading conversation:', error);
@@ -140,7 +136,6 @@
             }
         }
 
-        // Send a message to the active friend
         document.getElementById('send-message').addEventListener('click', async () => {
             const userid = getCookie('spotify_id');
             const messageInput = document.getElementById('message-input');
@@ -164,24 +159,21 @@
 
                 if (!response.ok) throw new Error('Failed to send message.');
 
-                messageInput.value = ''; // Clear the input field
-                loadConversation(activeFriendId); // Refresh the conversation
+                messageInput.value = '';
+                loadConversation(activeFriendId);
             } catch (error) {
                 console.error('Error sending message:', error);
                 alert('Failed to send message.');
             }
         });
 
-        // Get cookie by name
         function getCookie(name) {
-            let value = "; " + document.cookie;
-            let parts = value.split("; " + name + "=");
-            if (parts.length === 2) return parts.pop().split(";").shift();
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
         }
 
-        // Load friends list when the page loads
         window.onload = loadFriendsList;
     </script>
 </body>
 </html>
-
