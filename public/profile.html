@@ -214,7 +214,6 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.errmsg) alert(data.errmsg);
-                    //window.location.reload();
                 })
                 .catch(error => {
                     console.error('Error:', error);
@@ -242,13 +241,12 @@
                         alert(data.errmsg);
                     } else {
                         alert(data.msg);
-                        //window.location.reload();
                     }
                 } catch (error) {
                     console.error('Error removing friend:', error);
                     alert(`Error removing friend: ${friendId}`);
                 }
-                
+
                 loadFriendsList();
                 loadPendingFriendsList();
             }
