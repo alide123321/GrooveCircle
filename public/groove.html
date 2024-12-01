@@ -102,12 +102,43 @@
 
                 if (data.chatroomId) {
                     activeChatroomId = data.chatroomId;
-                    // hide initial view and show chatroom 
-                    initialView.style.display = 'none';
-                    chatroomContainer.style.display = 'block'; 
 
-                    // load chatroom data
-                    await loadChatroom(activeChatroomId);
+                    // add delay so chatroom is created before calling loadChatroom
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+
+                    // Try loading chatroom multiple times
+                    let attempts = 0; 
+                    const maxAttempts = 3; 
+
+                    while (attempts < maxAttempts) {
+                        try {
+                            const chatroomResponse = await fetch(`/chatroom`, {
+                                headers: {
+                                    'chatroomid': activeChatroomId
+                                }
+                            });
+
+                            if (chatroomResponse.ok) {
+                                // hide initial view and show chatroom 
+                                initialView.style.display = 'none';
+                                chatroomContainer.style.display = 'block'; 
+                                
+                                // load chatroom data
+                                await loadChatroom(activeChatroomId);
+                                break; 
+                            }
+                        } catch (error) {
+                            console.log(`Attempt ${attempts + 1} failed, retrying...`);
+                        }
+                        attempts++;
+                        if (attempts < maxAttempts) {
+                            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second between attempts
+                        }
+                    }
+
+                    if (attempts === maxAttempts) {
+                        throw new Error('Failed to load chatroom after multiple attempts');
+                    }
                 }
             } catch (error) {
                 console.error('Error', error); 
