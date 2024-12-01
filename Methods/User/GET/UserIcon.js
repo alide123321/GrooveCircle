@@ -51,7 +51,7 @@ router.get('/', async (req, res) => {
 	}
 
 	res.status(200).json({
-		userIcon: userinfo.spotify_info.profile_image || '/images/default-profile.png',
+		userIcon: userinfo.spotify_info.profile_image || '/images/default-profile.png', //this endpoint fetches the profile image of a user using their userid
 	});
 });
 
