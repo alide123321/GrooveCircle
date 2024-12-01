@@ -389,9 +389,13 @@ body {
 }
 
 .message-friend-item img {
-    border-radius: 50%;
-    margin-right: 10px;
+    border-radius: 50%; /* Makes images circular */
+    margin-right: 10px; /* Adds spacing between image and text */
+    width: 40px; /* Consistent image size */
+    height: 40px; /* Maintains circular aspect */
+    object-fit: cover; /* Ensures image content fits well */
 }
+
 
 .message-friend-item:hover {
     background-color: #444;
