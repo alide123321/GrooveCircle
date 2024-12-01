@@ -466,19 +466,59 @@ body {
 
 /* messagepage.html end */
 
-.message-content-with-icon {
+/* groove.html specific */
+.group-message-item {
+    margin: 10px 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.group-message-content-with-icon {
     display: flex;
     align-items: flex-start;
     gap: 10px;
     max-width: 80%;
 }
 
-.message-user-icon {
+.group-message-sent-message .group-message-content-with-icon {
+    flex-direction: row-reverse;
+    margin-left: auto;
+}
+
+.group-message-received-message .group-message-content-with-icon {
+    margin-right: auto;
+}
+
+.group-message-user-icon {
     width: 30px;
     height: 30px;
     border-radius: 50%;
     object-fit: cover;
 }
+
+.group-message-bubble {
+    background-color: #363636;
+    padding: 8px 12px;
+    border-radius: 15px;
+    max-width: fit-content;
+}
+
+.group-message-sent-message .group-message-bubble {
+    background-color: #323ccd;
+}
+
+.group-message-bubble p {
+    margin: 0;
+    color: white;
+}
+
+.group-message-bubble small {
+    font-size: 0.8em;
+    color: #aaa;
+    display: block;
+    margin-top: 4px;
+}
+/* groove.html end */
 
 .messages-area {
     height : 60%;

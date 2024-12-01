@@ -164,16 +164,16 @@
                 const userIcon = await getUserIcon(message.sender);
                 
                 const messageDiv = document.createElement('div');
-                messageDiv.className = `message-item ${isCurrentUser ? 'message-sent-message' : 'message-received-message'}`;
+                messageDiv.className = `group-message-item ${isCurrentUser ? 'group-message-sent-message' : 'group-message-received-message'}`;
                 
                 messageDiv.innerHTML = `
-                    <div class="message-content-with-icon">
-                        ${!isCurrentUser ? `<img src="${userIcon}" class="message-user-icon" alt="user icon">` : ''}
-                        <div class="message-bubble">
+                    <div class="group-message-content-with-icon">
+                        ${!isCurrentUser ? `<img src="${userIcon}" class="group-message-user-icon" alt="user icon">` : ''}
+                        <div class="group-message-bubble">
                             <p>${message.message}</p>
                             <small>${new Date(message.timestamp).toLocaleTimeString()}</small>
                         </div>
-                        ${isCurrentUser ? `<img src="${userIcon}" class="message-user-icon" alt="user icon">` : ''}
+                        ${isCurrentUser ? `<img src="${userIcon}" class="group-message-user-icon" alt="user icon">` : ''}
                     </div>
                 `;
                 messagesArea.appendChild(messageDiv);
