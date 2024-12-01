@@ -6,7 +6,7 @@ router.get('/', async (req, res) => {
     let { userid, limit, offset } = req.headers;
 
     userid = userid?.trim();
-    limit = parseInt(limit?.trim() || 10, 10); //limit of 10 songs returned  in one API call
+    limit = parseInt(limit?.trim() || 10, 10); //limit of 10 songs returned in one API call
     offset = parseInt(offset?.trim() || 0, 10); //starts fetchibg of songs
 
     if (!userid) {
@@ -36,7 +36,7 @@ router.get('/', async (req, res) => {
             name: track.track.name,
             artist: track.track.artists.map(artist => artist.name).join(', '),
             id: track.track.id,
-            image: track.track.album.images[2] // Small album image
+            image: track.track.album.images[2] //small album image
         }));
 
         res.status(200).json({ songHistory });

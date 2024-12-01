@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="/css/shared.css">
 </head>
 <body class="page">
-    <!-- Navigation bar -->
+    <!-- navigation bar -->
     <div id="nav-bar" class="nav-bar">
         <a href="/groove" class="nav-link">Groove</a>
         <a href="/home" class="nav-link">Home</a>
@@ -21,11 +21,11 @@
             <!-- Friends list -->
             <div style="width: 30%;">
                 <div id="friend-list">
-                    <!-- Friends will be dynamically added here -->
+                    <!-- Friends will be added here -->
                 </div>
             </div>
 
-            <!-- Conversation box -->
+            <!-- conversation box -->
             <div style="width: 70%;">
                 <div id="conversation-box" class="message-conversation-box">
                     <p>Select a friend to start chatting.</p>
@@ -45,11 +45,11 @@
     <script>
         let activeFriendId = null;
 
-        // Load the friends list
+        //loads the friends list
         async function loadFriendsList() {
             const userid = getCookie('spotify_id');
             const friendList = document.getElementById('friend-list');
-            friendList.innerHTML = ''; // Clear previous list
+            friendList.innerHTML = ''; //clears previous list
 
             try {
                 const response = await fetch('/Friends', { headers: { userid } });
@@ -106,7 +106,7 @@
             }
         }
 
-        // Load conversation with a friend
+        //load conversation with a friend
         async function loadConversation(friendId) {
             const userid = getCookie('spotify_id');
             const conversationBox = document.getElementById('conversation-box');

@@ -77,7 +77,7 @@
         $(document).ready(function () {
             const songHistoryContainer = $('#song-history');
 
-            // Fetch the song history for the selected user
+            //fetch the song history for the selected user
             function fetchSongHistory(userId, append = false) {
                 if (loading) return;
                 loading = true;
@@ -117,7 +117,7 @@
                 });
             }
 
-            // Fetch friends list and populate dropdown
+            //gets friends list and populates dropdown
             function fetchFriends() {
                 $.ajax({
                     url: '/friends?enrich=true',
@@ -148,7 +148,7 @@
                 });
             }
 
-            // Detect scroll to load more songs
+            //this detects scroll to load more songs
             songHistoryContainer.on('scroll', function () {
                 if (
                     songHistoryContainer.scrollTop() + songHistoryContainer.innerHeight() >=
@@ -160,10 +160,10 @@
                 }
             });
 
-            // Fetch songs for the selected friend
+            //gets songs for the selected friend
             $('#friend-selector').on('change', function () {
                 const selectedUserId = $(this).val();
-                songOffset = 0; // Reset offset for new user
+                songOffset = 0; //reset offset for new user
                 fetchSongHistory(selectedUserId === 'me' ? loggedInUserId : selectedUserId);
             });
 
