@@ -3,25 +3,27 @@ const fetch = require('node-fetch');
 const router = express.Router();
 
 router.get('/', async (req, res) => {
-    let { userid, limit } = req.headers;
+    let { userid, limit, offset } = req.headers;
 
-    // ensures userid and limit are valid
+    // Ensure userid and limit are valid
     userid = userid?.trim();
-    limit = limit?.trim() || 10; //limit to 10
+    limit = parseInt(limit?.trim() || 10);
+    offset = parseInt(offset?.trim() || 0); // Default offset is 0
 
     if (!userid) {
-        return res.status(400).json({ errmsg: "Valid userid is required." });
+        return res.status(400).json({ errmsg: 'Valid userid is required.' });
     }
 
     try {
-        //fetch listening history for the user
+        // Fetch listening history for the user
         const fetchOptions = {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 userid,
                 limit,
-            },
+                offset
+            }
         };
 
         const response = await fetch(`http://localhost:${process.env.PORT}/listeningHistory`, fetchOptions);
@@ -32,23 +34,23 @@ router.get('/', async (req, res) => {
 
         const body = await response.json();
 
-        //validate and return song history
+        // Validate and return song history
         if (!body.tracks || body.tracks.length === 0) {
-            return res.status(404).json({ errmsg: "No listening history found." });
+            return res.status(404).json({ errmsg: 'No listening history found.' });
         }
 
         const songHistory = body.tracks.map((track) => ({
             name: track.track.name,
-            artist: track.track.artists.map((artist) => artist.name).join(', '), 
+            artist: track.track.artists.map((artist) => artist.name).join(', '),
             id: track.track.id,
-            image: track.track.album.images[2], 
+            image: track.track.album.images[2]
         }));
 
         res.status(200).json({ songHistory, length: songHistory.length });
     } catch (error) {
-        console.error("Error fetching song history:", error);
+        console.error('Error fetching song history:', error);
         res.status(500).json({
-            errmsg: error.message || "An error occurred while fetching song history.",
+            errmsg: error.message || 'An error occurred while fetching song history.'
         });
     }
 });

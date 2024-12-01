@@ -27,7 +27,7 @@
         .song-item {
             display: flex;
             flex-direction: column;
-            align-items: center; 
+            align-items: center;
             text-align: center;
             margin-bottom: 15px;
         }
@@ -43,10 +43,10 @@
             margin-bottom: 5px;
         }
 
-        .scrollable {
-            max-height: 600px;
+        .scrollable-container {
+            height: 80vh; /* Adjust as needed */
             overflow-y: auto;
-            padding-right: 10px;
+            padding: 10px;
         }
     </style>
 </head>
@@ -65,96 +65,131 @@
         <select id="friend-selector" class="friend-selector">
             <option value="me" selected>My History</option>
         </select>
-        <div id="song-history" class="song-history-list scrollable"></div>
+        <div id="song-history" class="scrollable-container"></div>
     </div>
 
     <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
     <script>
         $(document).ready(function () {
-            const loggedInUserId = getCookie('spotify_id'); //fetch logged in user's ID
+            const loggedInUserId = getCookie('spotify_id'); // Fetch logged-in user's ID
+            let songOffset = 0; // Tracks the offset for "load more"
+            const limit = 10; // Number of songs to fetch per request
+            let currentFriendId = 'me'; // Tracks the currently selected user
+            let loading = false; // Prevent multiple concurrent loads
 
-            //fetch song history for a user
-            function fetchSongHistory(userId) {
-                $.ajax({
-                    url: '/songHistory',
-                    type: 'GET',
-                    headers: { userid: userId, limit: 10 },
-                    success: function (response) {
-                        const songHistoryContainer = $('#song-history');
-                        songHistoryContainer.empty();
+            // Fetch song history for a user
+            async function fetchSongHistory(userId, offset = 0, append = false) {
+                if (loading) return; // Prevent loading if already in progress
+                loading = true;
 
-                        if (response.songHistory && response.songHistory.length > 0) {
-                            response.songHistory.forEach(song => {
-                                const songItem = `
-                                    <div class="song-item">
-                                        <img src="${song.image.url}" alt="Album Cover" class="album-cover">
-                                        <p class="song-title">${song.name}</p>
-                                        <p class="song-artist">By: ${song.artist}</p>
-                                    </div>
-                                `;
-                                songHistoryContainer.append(songItem);
-                            });
-                        } else {
-                            songHistoryContainer.html('<p>No recent songs found.</p>');
-                        }
-                    },
-                    error: function () {
-                        $('#song-history').html('<p>Unable to load song history.</p>');
-                    }
-                });
-            }
-
-    function fetchFriends() {
-    $.ajax({
-        url: '/friends?enrich=true', 
-        type: 'GET',
-        headers: { userid: loggedInUserId },
-        success: function (response) {
-            const friendSelector = $('#friend-selector');
-            friendSelector.empty(); 
-            friendSelector.append('<option value="me">My History</option>');
-
-            if (response.friendsList && response.friendsList.length > 0) {
-                response.friendsList.forEach((friendID) => {
-                    fetch('/Username', {
+                try {
+                    const response = await fetch('/songHistory', {
                         method: 'GET',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'userid': friendID,
+                        headers: { 
+                            userid: userId,
+                            limit: limit,
+                            offset: offset
                         }
-                    }).then(response => {
-                        if (!response.ok) alert('Failed to  friend.');
-
-                        return response.json();
-                    }).then(data => {
-                        const friendOption = `<option value="${friendID}">${data.username}</option>`;
-                        friendSelector.append(friendOption);
                     });
-                    
-                });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch song history');
+                    }
+
+                    const data = await response.json();
+                    const songHistoryContainer = $('#song-history');
+
+                    if (!append) songHistoryContainer.empty(); // Clear if not appending
+
+                    if (data.songHistory && data.songHistory.length > 0) {
+                        data.songHistory.forEach(song => {
+                            const songItem = `
+                                <div class="song-item">
+                                    <img src="${song.image.url}" alt="Album Cover" class="album-cover">
+                                    <p class="song-title">${song.name}</p>
+                                    <p class="song-artist">By: ${song.artist}</p>
+                                </div>
+                            `;
+                            songHistoryContainer.append(songItem);
+                        });
+                    } else if (!append && offset === 0) {
+                        songHistoryContainer.html('<p>No recent songs found.</p>');
+                    }
+                } catch (error) {
+                    console.error('Error loading song history:', error);
+                    $('#song-history').html('<p>Unable to load song history.</p>');
+                } finally {
+                    loading = false;
+                }
             }
-        },
-        error: function () {
-            console.error('Unable to load friends list.');
-        }
-    });
-}
 
+            // Fetch friends list
+            async function fetchFriends() {
+                try {
+                    const response = await fetch('/friends?enrich=true', {
+                        method: 'GET',
+                        headers: { userid: loggedInUserId }
+                    });
 
-            //fetch selected user's song history
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch friends');
+                    }
+
+                    const data = await response.json();
+                    const friendSelector = $('#friend-selector');
+                    friendSelector.empty();
+                    friendSelector.append('<option value="me">My History</option>');
+
+                    if (data.friendsList && data.friendsList.length > 0) {
+                        for (const friendID of data.friendsList) {
+                            const usernameResponse = await fetch('/Username', {
+                                method: 'GET',
+                                headers: { userid: friendID }
+                            });
+                            const usernameData = await usernameResponse.json();
+
+                            friendSelector.append(
+                                `<option value="${friendID}">${usernameData.username}</option>`
+                            );
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error loading friends list:', error);
+                }
+            }
+
+            // Handle user selection change
             $('#friend-selector').on('change', function () {
-                const selectedUserId = $(this).val();
-                fetchSongHistory(selectedUserId === 'me' ? loggedInUserId : selectedUserId);
+                currentFriendId = $(this).val();
+                songOffset = 0; // Reset offset
+                fetchSongHistory(currentFriendId === 'me' ? loggedInUserId : currentFriendId);
             });
 
+            // Infinite scroll to load more songs
+            $('#song-history').on('scroll', function () {
+                const container = $(this);
+                if (
+                    container.scrollTop() + container.innerHeight() >= container[0].scrollHeight - 10 &&
+                    !loading
+                ) {
+                    songOffset += limit; // Increase offset
+                    fetchSongHistory(
+                        currentFriendId === 'me' ? loggedInUserId : currentFriendId,
+                        songOffset,
+                        true // Append new data
+                    );
+                }
+            });
+
+            // Initial load
             fetchSongHistory(loggedInUserId);
             fetchFriends();
         });
 
         function getCookie(name) {
-            let value = "; " + document.cookie;
-            let parts = value.split("; " + name + "=");
-            if (parts.length === 2) return parts.pop().split(";").shift();
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
         }
     </script>
 </body>
