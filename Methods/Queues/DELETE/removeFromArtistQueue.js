@@ -22,7 +22,7 @@ router.delete('/', async (req, res) => {
 	});
 
 	queues.findOne({ artistID: artistid }).then((result) => {
-		if (result.userids && result.userids.length === 0) {
+		if (result?.userids?.length === 0) {
 			const fetchOptions = {
 				method: 'DELETE',
 				headers: {

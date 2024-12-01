@@ -24,7 +24,7 @@ router.delete('/', async (req, res) => {
 	});
 
 	queues.findOne({ albumID: albumid }).then((result) => {
-		if (result.userids && result.userids.length === 0) {
+		if (result?.userids?.length === 0) {
 			const fetchOptions = {
 				method: 'DELETE',
 				headers: {
