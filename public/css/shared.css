@@ -466,6 +466,20 @@ body {
 
 /* messagepage.html end */
 
+.message-content-with-icon {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    max-width: 80%;
+}
+
+.message-user-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
 .messages-area {
     height : 60%;
     overflow-y: auto;

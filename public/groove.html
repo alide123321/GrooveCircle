@@ -139,16 +139,45 @@
             }
         }
 
-        function displayMessages(messages) {
-            messagesArea.innerHTML = messages.map(message => {
+        async function getUserIcon(userId) {
+            try {
+                const response = await fetch('/UserIcon', {
+                    headers: {
+                        'userid': userId
+                    }
+                });
+                const data = await response.json();
+                return data.userIcon;
+            } catch (error) {
+                console.error('Error fetching user icon:', error);
+                return '/images/default-profile.png'; // fallback to default icon
+            }
+        }
+
+        async function displayMessages(messages) {
+            // Clear existing messages
+            messagesArea.innerHTML = '';
+
+            // Process each message
+            for (const message of messages) {
                 const isCurrentUser = message.sender === getCookie('spotify_id');
-                return `
-                    <div class="${isCurrentUser ? 'message-sent-message' : 'message-received-message'}">
-                        <p>${message.message}</p>
-                        <small>${new Date(message.timestamp).toLocaleTimeString()}</small>
+                const userIcon = await getUserIcon(message.sender);
+                
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message-item ${isCurrentUser ? 'message-sent-message' : 'message-received-message'}`;
+                
+                messageDiv.innerHTML = `
+                    <div class="message-content-with-icon">
+                        ${!isCurrentUser ? `<img src="${userIcon}" class="message-user-icon" alt="user icon">` : ''}
+                        <div class="message-bubble">
+                            <p>${message.message}</p>
+                            <small>${new Date(message.timestamp).toLocaleTimeString()}</small>
+                        </div>
+                        ${isCurrentUser ? `<img src="${userIcon}" class="message-user-icon" alt="user icon">` : ''}
                     </div>
                 `;
-            }).join('');
+                messagesArea.appendChild(messageDiv);
+            }
             messagesArea.scrollTop = messagesArea.scrollHeight;
         }
 
