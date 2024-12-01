@@ -11,7 +11,7 @@ router.get('/', async (req, res) => {
 	const chatroomCollection = database.collection('chatrooms');
 	const chatroom = await chatroomCollection.findOne({ participants: { $in: [userid] } });
 
-	if (!chatroom._id) return res.status(404).json({ errmsg: 'User is not in a chatroom ' });
+	if (!chatroom?._id) return res.status(404).json({ errmsg: 'User is not in a chatroom ' });
 
 	res.status(200).json({
 		messages: chatroom._id,
