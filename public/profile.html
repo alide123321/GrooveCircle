@@ -52,7 +52,7 @@
             <div class="friend-item">
                 <img class="friend-image" src="{{images.0.url}}" alt="Profile Picture"/>
                 <span class="friend-name" data-id="{{id}}">{{display_name}}</span>
-                <button id="accept-pending-friend-button" class="btn add-btn">+</button>
+                <button id="accept-pending-friend-button" class="btn add-pending-btn">+</button>
                 <button id="remove-pending-friend-button" class="btn remove-btn">-</button>
             </div>
         </script>
@@ -156,7 +156,7 @@
                         pendingFriendsList.innerHTML += friendHtml;
                     }
 
-                    document.querySelectorAll('.add-btn').forEach(button => {
+                    document.querySelectorAll('.add-pending-btn').forEach(button => {
                         // when the button is clicked, get the friend's name and id
                         button.addEventListener('click', function(e) {
                             const friendItem = e.target.closest('.friend-item');
