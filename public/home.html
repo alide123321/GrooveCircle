@@ -82,7 +82,9 @@
                 if (loading) return;
                 loading = true;
 
-                $.ajax({
+
+                if((parseInt(limit) + parseInt(songOffset)) <= 50){
+                    $.ajax({
                     url: '/songHistory',
                     type: 'GET',
                     headers: { userid: userId, limit, offset: songOffset },
@@ -115,6 +117,7 @@
                         loading = false;
                     }
                 });
+                }
             }
 
             //gets friends list and populates dropdown

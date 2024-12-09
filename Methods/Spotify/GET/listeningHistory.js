@@ -5,6 +5,12 @@ const router = express.Router();
 router.get('/', async (req, res) => {
 	const { userid } = req.headers;
 	let { limit } = req.headers || 5;
+	let { offset } = req.headers || 0;
+	if (parseInt(limit) + parseInt(offset) > 50) {
+		return res.status(400).json({
+			errmsg: 'Limit + Offset cannot exceed 50',
+		});
+	}
 
 	if (!userid)
 		return res.status(400).json({
@@ -35,10 +41,12 @@ router.get('/', async (req, res) => {
 		},
 	};
 
-	fetch(`https://api.spotify.com/v1/me/player/recently-played?limit=${limit}`, authOptions)
+	fetch(`https://api.spotify.com/v1/me/player/recently-played?limit=${parseInt(limit) + parseInt(offset)}`, authOptions)
 		.then((response) => response.json())
 		.then((body) => {
 			if (!body || !body.items) throw new Error('error fetching listening history');
+
+			body.items = body.items.slice(parseInt(offset));
 
 			return res.status(200).json({
 				tracks: body.items,
