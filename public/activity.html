@@ -67,6 +67,7 @@
             const span = $(".close");
             const songSelect = $("#song-select");
             const activityType = $("#activity-type");
+            const activityImage = $("#activity-image");
 
             // Function to get cookie 
             function getCookie(name) {
@@ -80,8 +81,6 @@
                 console.log('Loading activities feed');
                 const userid = getCookie('spotify_id');
                 const activityFeed = $("#activity-feed");
-
-                console.log('User ID:', userid);
 
                 if (!userid) {
                     console.error('No user ID found');
@@ -177,6 +176,7 @@
                                 <div class="activity-content">
                                     <span class="activity-type">${activity.activity_type}</span>
                                     <span class="activity-song">Loading song details...</span>
+                                    <img class="activity-image" src="https://static-00.iconduck.com/assets.00/loading-icon-2048x2048-m1cbe7w5.png"/>
                                 </div>
                             </div>
                         `);
@@ -215,9 +215,9 @@
                             return response.json();
                         })
                         .then(trackData => {
-                            console.log('Track data received:', trackData);
-                            if (trackData && trackData.name && trackData.artists && trackData.artists[0]) {
+                            if (trackData && trackData?.name && trackData?.artists && trackData?.artists[0] && trackData?.album?.images[0]?.url) {
                                 activityCard.find('.activity-song').text(`${trackData.name} by ${trackData.artists[0].name}`);
+                                activityCard.find('.activity-image').attr('src', trackData?.album?.images[0]?.url);
                             } else {
                                 throw new Error('Invalid track data format');
                             }

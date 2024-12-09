@@ -650,6 +650,14 @@ body {
     margin: 10px 0;
     padding: 10px;
 }
+.activity-image {
+    position: relative;
+    left: 80%;
+    width: 17%;
+    height: 17%;
+    object-fit: cover;
+    margin-right: 15px;
+}
 
 #song-select {
     width: 100%;
