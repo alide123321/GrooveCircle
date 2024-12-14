@@ -8,20 +8,20 @@ router.delete('/', async (req, res) => {
 
 	if (!userid) return res.status(400).send('Missing userid');
 
-	const fetchOptions = {
-		method: 'GET',
-		headers: {
-			'Content-Type': 'application/json',
-			userid: userid,
-		},
-	};
+	// refactored to use getMatching endpoint
+	const matchingResponse = await fetch(`http://localhost:${process.env.PORT}/getMatching`, {
+        headers: { userid }
+    });
 
-	let userinfo = await fetch(`http://localhost:${process.env.PORT}/User`, fetchOptions);
-	if (!userinfo.ok) return res.status(404).send('issue with fetching user');
-	userinfo = (await userinfo.json()).user;
+	// If user is not in queue (208) or there's an error fetching user (404)
+    if (matchingResponse.status === 208) {
+        return res.status(208).send('User is already not in a queue');
+    }
+    if (matchingResponse.status === 404) {
+        return res.status(404).send('issue with fetching user');
+    }
 
-	if (userinfo.isInQueue === false) return res.status(208).send('User is already not in a queue');
-
+	// If user is in queue (200), remove them from queue
 	const users = database.collection('users');
 	await users.updateOne({ 'spotify_info.id': userid }, { $set: { isInQueue: false } });
 
