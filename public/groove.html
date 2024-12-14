@@ -165,34 +165,223 @@ document.addEventListener('DOMContentLoaded', function () {
         if (parts.length === 2) return parts.pop().split(';').shift();
     }
 
-    async function loadGroupMembers(chatroomId) {
-    try {
-        const response = await fetch(`/chatroom/members`, {
-            headers: { 'chatroomid': chatroomId }
-        });
-        if (!response.ok) throw new Error(`Failed to fetch group members, status: ${response.status}`);
+    async function checkInitialState() {
+        const userid = getCookie('spotify_id');
+        if (!userid) {
+            console.error('No user ID found');
+            return;
+        }
 
-        const data = await response.json();
-        groupMembersList.innerHTML = ''; // Clear the list before adding new members
-        data.members.forEach(member => {
-            
-            const profileImage = member.iconUrl || '/images/default-profile.png'; // Fallback image
-            const memberItem = document.createElement('div');
-            memberItem.className = 'group-member-item';
-            memberItem.innerHTML = 
-            `<img src="${member.userIcon}" alt="/images/default-profile.png"'s class="group-member-icon">
-            <span class="username">${member.username}</span>
-            <span class="userid">${member.userid}</span>`;
-            
-            groupMembersList.appendChild(memberItem);
-        });
+        try {
+            // Check if user is in a chatroom
+            const chatroomResponse = await fetch('/inChatroom', {
+                headers: { userid }
+            });
+                
+            console.log('Chatroom response: ', chatroomResponse.status);
 
-    } catch (error) {
-        console.error('Error loading group members:', error);
-        groupMembersList.innerHTML = '<p>Failed to load group members.</p>';
+            if (chatroomResponse.status === 404) {
+                // If not in chatroom, check if in queue
+                const matchingResponse = await fetch('/getMatching', {
+                    headers: { userid }
+                });
+
+                const matchingData = await matchingResponse.json();
+                console.log('Matching Response:', {
+                    status: matchingResponse.status,
+                    data: matchingData
+                });
+
+                // if user is in queue show waveform
+                if (matchingResponse.status === 200 && matchingData.isInQueue) {
+                    console.log('User is in queue, showing waveform');
+                    grooveButton.parentElement.style.display = 'none';
+                    waveformContainer.style.display = 'flex';
+                    return;
+                }
+
+                // Not in queue either, show groove button
+                console.log('User is not in queue or chatroom, showing groove button');
+                grooveButton.parentElement.style.display = 'block';
+                waveformContainer.style.display = 'none';
+                chatroomContainer.style.display = 'none';
+                return;
+            }
+
+            if (chatroomResponse.ok) {
+                // User is in a chatroom
+                const chatroomData = await chatroomResponse.json();
+                activeChatroomId = chatroomData.chatroomId;
+                initialView.style.display = 'none';
+                chatroomContainer.style.display = 'block';
+                await loadChatroom(activeChatroomId);
+                return;
+            }
+
+        } catch (error) {
+            console.error('Error checking initial state:', error);
+            grooveButton.parentElement.style.display = 'block';
+            waveformContainer.style.display = 'none';
+            chatroomContainer.style.display = 'none';
+        }
     }
-}
 
+    // check initial state when page loads
+    checkInitialState();
+
+    // groove button click event
+    grooveButton.addEventListener('click', async function(e) {
+        e.preventDefault(); 
+
+        const userid = getCookie('spotify_id');
+        if (!userid) {
+            console.error('No user ID found');
+            return;
+        }
+
+        // show waveform
+        grooveButton.parentElement.style.display = 'none'; 
+        waveformContainer.style.display = 'flex'; 
+
+        try {
+            const response = await fetch('/matching', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'userid': userid
+                }
+            });
+
+            if (response.status === 409) {
+                console.log('User is already in queue');
+                return;
+            }
+
+            if (!response.ok) throw new Error('calling matching failed');
+
+            const data = await response.json();
+            console.log('Matching response: ', data);
+
+            if (data.chatroomId) {
+                activeChatroomId = data.chatroomId;
+
+                // add delay so chatroom is created before calling loadChatroom
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                // Try loading chatroom multiple times
+                let attempts = 0; 
+                const maxAttempts = 3; 
+
+                while (attempts < maxAttempts) {
+                    try {
+                        const chatroomResponse = await fetch(`/chatroom`, {
+                            headers: {
+                                'chatroomid': activeChatroomId
+                            }
+                        });
+
+                        if (chatroomResponse.ok) {
+                            // hide initial view and show chatroom 
+                            initialView.style.display = 'none';
+                            chatroomContainer.style.display = 'block'; 
+                            
+                            // load chatroom data
+                            await loadChatroom(activeChatroomId);
+                            break; 
+                        }
+                    } catch (error) {
+                        console.log(`Attempt ${attempts + 1} failed, retrying...`);
+                    }
+                    attempts++;
+                    if (attempts < maxAttempts) {
+                        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second between attempts
+                    }
+                }
+
+                if (attempts === maxAttempts) {
+                    throw new Error('Failed to load chatroom after multiple attempts');
+                }
+            }
+        } catch (error) {
+            console.error('Error', error); 
+            // reset UI on error 
+            waveformContainer.style.display = 'none'; 
+            grooveButton.parentElement.style.display = 'block'; 
+        }
+    });
+
+    async function loadGroupMembers(chatroomId) {
+        try {
+            const response = await fetch(`/chatroom/members`, {
+                headers: { 'chatroomid': chatroomId }
+            });
+            if (!response.ok) throw new Error(`Failed to fetch group members, status: ${response.status}`);
+
+            const data = await response.json();
+            groupMembersList.innerHTML = ''; // Clear the list before adding new members
+            data.members.forEach(member => {
+                const profileImage = member.iconUrl || '/images/default-profile.png'; // Fallback image
+                const memberItem = document.createElement('div');
+                memberItem.className = 'group-member-item';
+                memberItem.innerHTML = 
+                `<img src="${member.userIcon}" alt="/images/default-profile.png"'s class="group-member-icon">
+                <span class="username">${member.username}</span>
+                    <span class="userid">${member.userid}</span>`;
+            
+                groupMembersList.appendChild(memberItem);
+            });
+
+        } catch (error) {
+            console.error('Error loading group members:', error);
+            groupMembersList.innerHTML = '<p>Failed to load group members.</p>';
+        }
+    }
+
+    // call method to leave matching
+    async function leaveMatching() {
+        const userId = getCookie('spotify_id');
+        if (!userId) {
+            console.error('No user ID found when quitting groove');
+            return;
+        }
+
+        waveformContainer.style.display = 'none';
+        grooveButton.parentElement.style.display = 'block';
+
+        try {
+            // check if the user is matching 
+            const matchingResponse = await fetch('/getMatching', {
+                headers: { 'userid': userId}
+            });
+
+            const matchingData = await matchingResponse.json();
+
+            if (matchingResponse.ok && matchingData.isInQueue) {
+                const response = await fetch('/leaveMatching', {
+                    method: 'DELETE',
+                    headers: {
+                        'userid': userId
+                    }
+                });
+                if (!response.ok) throw new Error('Failed to leave matching');
+
+                console.log('Left matching successfully');
+            } else {
+                console.log('User was not in matching');
+            }
+
+            // reset UI state after successfully leave matching
+        } catch (error) {
+            console.error('Error leaving matching:', error);
+        }
+    }
+
+    // quit groove button
+    quitGrooveButton.addEventListener('click', async function(e) {
+        e.preventDefault();
+        console.log('Quitting groove');
+        await leaveMatching();
+    });
 
     async function loadChatroom(chatroomId) {
         try {
