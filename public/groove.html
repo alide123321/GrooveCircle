@@ -1,10 +1,71 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>GrooveCircle</title>
-    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/css/shared.css">
-</head>
+    <head>
+        <!-- Existing links and styles -->
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+        <link rel="stylesheet" href="/css/shared.css">
+        <style>
+            /* Sidebar specific styles */
+            .group-sidebar {
+                width: 20%; /* Adjust width as needed */
+                background-color: #1c1c1c;
+                border-radius: 10px;
+                padding: 10px;
+                margin-right: 20px;
+                color: white;
+                overflow-y: auto;
+                max-height: 400px; /* Adjust height based on layout */
+                box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+                position: absolute; /* Adjust positioning as needed */
+                left: 0;
+            }
+    
+            .group-sidebar h3 {
+                text-align: center;
+                margin-bottom: 10px;
+                font-size: 1.2em;
+                color: #f0f0f0;
+            }
+    
+            .group-member-item {
+                display: flex;
+                align-items: center;
+                padding: 8px;
+                margin-bottom: 8px;
+                border-radius: 5px;
+                background-color: #333;
+                cursor: pointer;
+                transition: background-color 0.3s ease;
+                color: white;
+            }
+    
+            .group-member-item:hover {
+                background-color: #444;
+            }
+    
+            .group-member-icon {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                margin-right: 10px;
+                object-fit: cover;
+            }
+    
+            .group-member-item img {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                margin-right: 10px;
+                object-fit: cover;
+            }
+    
+            .group-member-item span {
+                font-size: 1em;
+                color: white;
+            }
+        </style>
+    </head>
+    
 <body class="page">
     <!-- Nav Bar -->
     <div id="nav-bar" class="nav-bar">
@@ -43,8 +104,8 @@
                 </div>
             </div>
 
-<!-- chatroom container (hidden by default) -->
-<div id="chatroom-container" class="message-main-container" style="display: none;">
+<!-- chatroom container (always visible for testing) -->
+<div id="chatroom-container" class="message-main-container">
     <div style="display: flex; gap: 20px;">
         <!-- Sidebar for group members -->
         <div id="group-sidebar" class="group-sidebar">
@@ -65,13 +126,14 @@
     </div>
 </div>
 
+
     
     <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
     <script src="/js/shared.js"></script>
 </body>
 </html>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function () {
     const grooveButton = document.getElementById('groove-button');
     const waveformContainer = document.getElementById('waveform-container');
     const initialView = document.getElementById('initial-view');
@@ -80,77 +142,64 @@
     const messageInput = document.getElementById('message-input');
     const sendButton = document.getElementById('send-button');
     const quitGrooveButton = document.getElementById('cancel-groove');
-    const groupSidebar = document.getElementById('group-sidebar'); // Sidebar container
-    const groupMembersList = document.getElementById('group-members-list'); // Members list container
-    let activeChatroomId = null;
+    const groupSidebar = document.getElementById('group-sidebar');
+    const groupMembersList = document.getElementById('group-members-list');
 
-    // Function to get a cookie value
+    let activeChatroomId = '675df3b32d795e44a5f8da1f'; // Testing hardcoded chatroom ID
+
     function getCookie(name) {
         const value = `; ${document.cookie}`;
         const parts = value.split(`; ${name}=`);
         if (parts.length === 2) return parts.pop().split(';').shift();
     }
 
-    // Function to load group members into the sidebar
     async function loadGroupMembers(chatroomId) {
-        try {
-            const response = await fetch(`/chatroom/members`, {
-                headers: { chatroomid: chatroomId }
-            });
+    try {
+        const response = await fetch(`/chatroom/members`, {
+            headers: { 'chatroomid': chatroomId }
+        });
+        if (!response.ok) throw new Error(`Failed to fetch group members, status: ${response.status}`);
 
-            if (!response.ok) throw new Error('Failed to fetch group members.');
+        const data = await response.json();
+        groupMembersList.innerHTML = ''; // Clear the list before adding new members
+        data.members.forEach(member => {
+    const profileImage = member.iconUrl || '/images/default-profile.png'; // Fallback image
+    const memberItem = document.createElement('div');
+    memberItem.className = 'group-member-item';
+    memberItem.innerHTML = `
+        <img src="${profileImage}" alt="${member.username}'s profile" class="group-member-icon">
+        <p>${member.username}</p>
+    `;
+    groupMembersList.appendChild(memberItem);
+});
 
-            const data = await response.json();
-            groupMembersList.innerHTML = ''; // Clear the list before adding new members
-
-            data.members.forEach(member => {
-                if (member.userid !== getCookie('spotify_id')) { // Exclude the current user
-                    const memberItem = document.createElement('div');
-                    memberItem.className = 'group-member-item';
-                    memberItem.innerHTML = `
-                        <p><strong>${member.username}</strong> (${member.userid})</p>
-                    `;
-                    groupMembersList.appendChild(memberItem);
-                }
-            });
-        } catch (error) {
-            console.error('Error loading group members:', error);
-            groupMembersList.innerHTML = '<p>Failed to load group members.</p>';
-        }
+    } catch (error) {
+        console.error('Error loading group members:', error);
+        groupMembersList.innerHTML = '<p>Failed to load group members.</p>';
     }
+}
 
-    // Function to load chatroom data
+
     async function loadChatroom(chatroomId) {
         try {
             const response = await fetch(`/chatroom`, {
-                headers: {
-                    'chatroomid': chatroomId
-                }
+                headers: { 'chatroomid': chatroomId }
             });
             const data = await response.json();
-
             if (!data || !data.messages) {
                 messagesArea.innerHTML = '<p>No messages yet. Start the conversation.</p>';
                 return;
             }
-
             displayMessages(data.messages);
-
-            // Load group members into the sidebar
-            await loadGroupMembers(chatroomId);
-
-            messagesArea.scrollTop = messagesArea.scrollHeight;
         } catch (error) {
             console.error('Error loading chatroom:', error);
             messagesArea.innerHTML = '<p>Failed to load conversation history.</p>';
         }
     }
 
-    // Function to display messages
-    async function displayMessages(messages) {
-        messagesArea.innerHTML = ''; // Clear existing messages
-
-        for (const message of messages) {
+    function displayMessages(messages) {
+        messagesArea.innerHTML = '';
+        messages.forEach(message => {
             const isCurrentUser = message.sender === getCookie('spotify_id');
             const messageDiv = document.createElement('div');
             messageDiv.className = `group-message-item ${isCurrentUser ? 'group-message-sent-message' : 'group-message-received-message'}`;
@@ -163,58 +212,14 @@
                 </div>
             `;
             messagesArea.appendChild(messageDiv);
-        }
-
-        messagesArea.scrollTop = messagesArea.scrollHeight;
+        });
+        messagesArea.scrollTop = messagesArea.scrollHeight; // Scroll to bottom
     }
 
-    grooveButton.addEventListener('click', async function (e) {
-        e.preventDefault();
-
-        const userid = getCookie('spotify_id');
-        if (!userid) {
-            console.error('No user ID found');
-            return;
-        }
-
-        // Show waveform
-        grooveButton.parentElement.style.display = 'none';
-        waveformContainer.style.display = 'flex';
-
-        try {
-            const response = await fetch('/matching', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    userid
-                }
-            });
-
-            if (!response.ok) throw new Error('Failed to start matching.');
-
-            const data = await response.json();
-            activeChatroomId = data.chatroomId;
-
-            initialView.style.display = 'none';
-            chatroomContainer.style.display = 'block';
-
-            // Load chatroom and group members
-            await loadChatroom(activeChatroomId);
-        } catch (error) {
-            console.error('Error starting matching:', error);
-            waveformContainer.style.display = 'none';
-            grooveButton.parentElement.style.display = 'block';
-        }
-    });
-
-    sendButton.addEventListener('click', sendMessage);
-
-    async function sendMessage() {
+    sendButton.addEventListener('click', async function() {
         const messageContent = messageInput.value.trim();
-        const userid = getCookie('spotify_id');
-
-        if (!activeChatroomId || !messageContent) {
-            console.error('Missing chatroomId or message content');
+        if (!messageContent) {
+            console.error('No message content');
             return;
         }
 
@@ -223,24 +228,32 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    userid,
-                    'chatroomid': activeChatroomId
+                    userid: getCookie('spotify_id'),
+                    chatroomid: activeChatroomId
                 },
                 body: JSON.stringify({ messageContent })
             });
 
-            if (!response.ok) throw new Error('Failed to send message.');
+            if (!response.ok) throw new Error('Failed to send message');
 
             messageInput.value = '';
-            await loadChatroom(activeChatroomId);
+            loadChatroom(activeChatroomId);
         } catch (error) {
             console.error('Error sending message:', error);
         }
-    }
+    });
 
-    // Auto-refresh chatroom every 3 seconds
-    setInterval(() => {
-        if (activeChatroomId) loadChatroom(activeChatroomId);
-    }, 3000);
+    // Load chatroom and group members immediately for testing purposes
+    loadGroupMembers(activeChatroomId);
+    loadChatroom(activeChatroomId);
+
+    quitGrooveButton.addEventListener('click', async function (e) {
+        e.preventDefault();
+        waveformContainer.style.display = 'none';
+        initialView.style.display = 'block';
+        chatroomContainer.style.display = 'none';
+        console.log('Quitting groove session');
+    });
 });
 </script>
+
