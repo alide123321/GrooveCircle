@@ -142,6 +142,7 @@
     
     <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
     <script src="/js/shared.js"></script>
+    <script src="/socket.io/socket.io.js"></script> <!-- Add Socket.IO script -->
 </body>
 </html>
 <script>
@@ -158,6 +159,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const groupMembersList = document.getElementById('group-members-list');
 
     let activeChatroomId = null; // Testing hardcoded chatroom ID
+    const socket = io(); // Initialize Socket.IO
+
+    socket.on('connect', () => {
+        console.log('Connected to socket');
+    });
 
     function getCookie(name) {
         const value = `; ${document.cookie}`;
@@ -439,21 +445,16 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         try {
-            const response = await fetch('/sendMessageGroup', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
+
+            socket.emit('sendchatMessage', {
                 userid: getCookie('spotify_id'),
-                    chatroomid: activeChatroomId
-                },
-                body: JSON.stringify({ messageContent })
+                friendid: activeFriendId,
+                chatroomid: activeChatroomId,
+                messageContent
             });
 
-            if (!response.ok) throw new Error('Failed to send message');
-
             messageInput.value = '';
-            loadChatroom(activeChatroomId);
-            loadGroupMembers(activeChatroomId);
+
         } catch (error) {
             console.error('Error sending message:', error);
         }

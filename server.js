@@ -21,7 +21,7 @@ io.on('connection', (socket) => {
 		socket.leave(room);
 	});
 
-	socket.on('chatMessage', async (data) => {
+	socket.on('sendchatMessage', async (data) => {
 		// Save message to database using your existing endpoint
 		const response = await fetch(`http://localhost:${process.env.PORT}/sendMessageGroup`, {
 			method: 'POST',

@@ -193,7 +193,6 @@
 
         socket.on('receiveMessage', (data) => {
             const userid = getCookie('spotify_id');
-            if ((data.friendid === userid && data.sender === activeFriendId) || (data.friendid === activeFriendId && data.sender === userid)) {
                 const conversationBox = document.getElementById('conversation-box');
                 const messageDiv = document.createElement('div');
                 messageDiv.className = data.sender === getCookie('spotify_id') ? 'message-sent-message' : 'message-received-message';
@@ -203,7 +202,6 @@
                 `;
                 conversationBox.appendChild(messageDiv);
                 conversationBox.scrollTop = conversationBox.scrollHeight;
-            }
         });
 
         function getCookie(name) {
