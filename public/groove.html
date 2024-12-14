@@ -73,6 +73,70 @@
             if (parts.length == 2) return parts.pop().split(";").shift();
         }
 
+        async function checkInitialState() {
+            const userid = getCookie('spotify_id');
+            if (!userid) {
+                console.error('No user ID found');
+                return;
+            }
+
+            try {
+                // Check if user is in a chatroom
+                const chatroomResponse = await fetch('/inChatroom', {
+                    headers: { userid }
+                });
+                
+                console.log('Chatroom response: ', chatroomResponse.status);
+
+                if (chatroomResponse.status === 404) {
+                    // If not in chatroom, check if in queue
+                    const matchingResponse = await fetch('/getMatching', {
+                        headers: { userid }
+                    });
+
+                    const matchingData = await matchingResponse.json();
+                    console.log('Matching Response:', {
+                        status: matchingResponse.status,
+                        data: matchingData
+                    });
+
+                    // if user is in queue show waveform
+                    if (matchingResponse.status === 200 && matchingData.isInQueue) {
+                        console.log('User is in queue, showing waveform');
+                        grooveButton.parentElement.style.display = 'none';
+                        waveformContainer.style.display = 'flex';
+                        return;
+                    }
+
+                // Not in queue either, show groove button
+                console.log('User is not in queue or chatroom, showing groove button');
+                grooveButton.parentElement.style.display = 'block';
+                waveformContainer.style.display = 'none';
+                chatroomContainer.style.display = 'none';
+                return;
+        }
+
+        if (chatroomResponse.ok) {
+            // User is in a chatroom
+            const chatroomData = await chatroomResponse.json();
+            activeChatroomId = chatroomData.chatroomId;
+            initialView.style.display = 'none';
+            chatroomContainer.style.display = 'block';
+            await loadChatroom(activeChatroomId);
+            return;
+        }
+
+    } catch (error) {
+        console.error('Error checking initial state:', error);
+        grooveButton.parentElement.style.display = 'block';
+        waveformContainer.style.display = 'none';
+        chatroomContainer.style.display = 'none';
+    }
+}
+
+        // check initial state when page loads
+        checkInitialState();
+
         grooveButton.addEventListener('click', async function(e) {
             e.preventDefault(); 
 
