@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const groupSidebar = document.getElementById('group-sidebar');
     const groupMembersList = document.getElementById('group-members-list');
 
-    let activeChatroomId = '675df3b32d795e44a5f8da1f'; // Testing hardcoded chatroom ID
+    let activeChatroomId = null; // Testing hardcoded chatroom ID
 
     function getCookie(name) {
         const value = `; ${document.cookie}`;
@@ -215,6 +215,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 initialView.style.display = 'none';
                 chatroomContainer.style.display = 'block';
                 await loadChatroom(activeChatroomId);
+                await loadGroupMembers(activeChatroomId);
                 return;
             }
 
@@ -287,6 +288,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             
                             // load chatroom data
                             await loadChatroom(activeChatroomId);
+                            await loadGroupMembers(activeChatroomId);
                             break; 
                         }
                     } catch (error) {
@@ -441,14 +443,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
             messageInput.value = '';
             loadChatroom(activeChatroomId);
+            loadGroupMembers(activeChatroomId);
         } catch (error) {
             console.error('Error sending message:', error);
         }
     });
 
-    // Load chatroom and group members immediately for testing purposes
-    loadGroupMembers(activeChatroomId);
-    loadChatroom(activeChatroomId);
 
     quitGrooveButton.addEventListener('click', async function (e) {
         e.preventDefault();
