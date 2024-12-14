@@ -41,18 +41,18 @@ router.post('/', async (req, res) => {
 		},
 	};
 
-	let response = await fetch(`http://localhost:${process.env.PORT}/FriendRequest`, GetfetchOptions);
+	let response = await fetch(`http://localhost:${process.env.PORT}/FriendRequests`, GetfetchOptions);
 	if (!response.ok) return res.status(404).json({ errmsg: 'issue with Users pending friends list' });
 	response = await response.json();
 
-	if (!response.pending_friends_list.includes(friendid))
+	if (!response?.pending_friends_list?.includes(friendid))
 		return res.status(400).json({ errmsg: `You do not have a pending request with this user` });
 
 	response = await fetch(`http://localhost:${process.env.PORT}/Friends`, GetfetchOptions);
 	if (!response.ok) return res.status(404).json({ errmsg: 'issue with finding Users friends list' });
 	response = await response.json();
 
-	if (response.friends_list.includes(friendid))
+	if (response?.friends_list?.includes(friendid))
 		return res.status(400).json({ errmsg: `You are already friends with this user` });
 
 	fetch(`http://localhost:${process.env.PORT}/removePendingFriend`, DeletefetchOptions);

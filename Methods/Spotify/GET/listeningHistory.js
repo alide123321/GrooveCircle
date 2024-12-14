@@ -4,8 +4,8 @@ const router = express.Router();
 
 router.get('/', async (req, res) => {
 	const { userid } = req.headers;
-	let { limit } = req.headers || 5;
-	let { offset } = req.headers || 0;
+	let limit = req.headers.limit !== undefined && req.headers.limit !== 'undefined' ? req.headers.limit : 5;
+	let offset = req.headers.offset !== undefined && req.headers.offset !== 'undefined' ? req.headers.offset : 0;
 	if (parseInt(limit) + parseInt(offset) > 50) {
 		return res.status(400).json({
 			errmsg: 'Limit + Offset cannot exceed 50',

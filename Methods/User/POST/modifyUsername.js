@@ -9,7 +9,7 @@ router.post('/', async (req, res) => {
 	// Logic for modifying the user
 	if (!userid || !newusername)
 		return res.status(400).json({
-			errmsg: 'userid and blockID are required',
+			errmsg: 'userid and new username are required',
 		});
 
 	const users = database.collection('users');

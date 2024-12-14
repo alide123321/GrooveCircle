@@ -10,6 +10,19 @@ router.post('/', (req, res) => {
 
 	const users = database.collection('users');
 
+	if (
+		!req.body.username ||
+		!req.body.id ||
+		!req.body.refresh_token ||
+		!req.body.access_token ||
+		!req.body.access_token_expiration ||
+		!req.body.email ||
+		!req.body.profile_image ||
+		!req.body.Country
+	) {
+		return res.status(400).send('Missing required fields');
+	}
+
 	const user = users
 		.insertOne({
 			friends_list: [],

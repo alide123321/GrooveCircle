@@ -5,7 +5,6 @@ const { database } = require('../../../dbClient');
 
 // delete route for removing a friend
 router.delete('/', async (req, res) => {
-	const users = database.collection('users');
 	const { userid, friendid } = req.headers;
 
 	if (!userid || !friendid)
@@ -40,6 +39,8 @@ router.delete('/', async (req, res) => {
 			errmsg: 'Friend not found',
 		});
 	}
+
+	const users = database.collection('users');
 
 	await users.updateOne({ 'spotify_info.id': userid }, { $pull: { friends_list: friendid } });
 	await users.updateOne({ 'spotify_info.id': friendid }, { $pull: { friends_list: userid } });

@@ -15,7 +15,13 @@ router.delete('/', async (req, res) => {
 	}
 
 	const queues = database.collection(`${state}Queue`);
-
+	try {
+		new ObjectId(queueid);
+	} catch (error) {
+		return res.status(400).json({
+			errmsg: 'queueid must be a 24 character hex string, 12 byte Uint8Array, or an integer',
+		});
+	}
 	await queues.deleteOne({ _id: new ObjectId(queueid) });
 
 	res.status(200).json({
