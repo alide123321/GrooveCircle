@@ -39,11 +39,18 @@
     </div>
 
     <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.1/handlebars.min.js"></script>
-    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
     <script src="/js/shared.js"></script>
+    <script src="/socket.io/socket.io.js"></script> <!-- Add Socket.IO script -->
 
     <script>
         let activeFriendId = null;
+        let currentRoom = null;
+        const socket = io(); // Initialize Socket.IO
+
+        socket.on('connect', () => {
+            console.log('Connected to socket');
+        });
 
         //loads the friends list
         async function loadFriendsList() {
@@ -92,10 +99,29 @@
                     }
 
                     listItem.onclick = () => {
-                        document.querySelectorAll('.message-friend-item').forEach(item => item.classList.remove('active'));
-                        listItem.classList.add('active');
+                        document.querySelectorAll('.message-friend-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
+
+                    const selectedFriend = document.querySelector(`[data-friend-id="${friendId}"]`);
+                    
+                    if (selectedFriend) {
+                        selectedFriend.classList.add('active');
                         activeFriendId = friendId;
                         loadConversation(friendId);
+                    
+                        const userId = getCookie('spotify_id');
+                        const roomName = [userId, friendId].sort().join('-');
+                    
+                        // Leave previous room if any
+                        if (currentRoom) {
+                            socket.emit('leaveRoom', currentRoom);
+                        }
+                    
+                        // Join new room
+                        currentRoom = roomName;
+                        socket.emit('joinRoom', roomName)
+                    }
                     };
 
                     friendList.appendChild(listItem);
@@ -106,13 +132,13 @@
             }
         }
 
+
         //load conversation with a friend
         async function loadConversation(friendId) {
             const userid = getCookie('spotify_id');
             const conversationBox = document.getElementById('conversation-box');
             conversationBox.innerHTML = '';
             
-
             try {
                 const response = await fetch(`/Conversation?userid=${userid}&friendid=${friendId}`);
                 const data = await response.json();
@@ -139,7 +165,7 @@
             conversationBox.scrollTop = conversationBox.scrollHeight;
         }
 
-        document.getElementById('send-message').addEventListener('click', async () => {
+        document.getElementById('send-message').addEventListener('click', () => {
             const userid = getCookie('spotify_id');
             const messageInput = document.getElementById('message-input');
             const messageContent = messageInput.value.trim();
@@ -147,35 +173,38 @@
             if (!activeFriendId || !messageContent) {
                 alert('Select a friend and type a message to send.');
                 return;
-            }
+            }            
+            socket.emit('sendMessage', {
+                userid,
+                friendid: activeFriendId,
+                messageContent,
+                room: currentRoom
+            });
 
-            try {
-                const response = await fetch('/SendMessageDM', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        userid,
-                        friendid: activeFriendId
-                    },
-                    body: JSON.stringify({ messageContent })
-                });
-
-                if (!response.ok) throw new Error('Failed to send message.');
-
-                messageInput.value = '';
-                loadConversation(activeFriendId);
-            } catch (error) {
-                console.error('Error sending message:', error);
-                alert('Failed to send message.');
-            }
+            messageInput.value = '';
         });
 
-        document.getElementById('message-input').addEventListener('keypress', async (event) => {
+        document.getElementById('message-input').addEventListener('keypress', (event) => {
             if (event.key === 'Enter') {
                 event.preventDefault();
                 document.getElementById('send-message').click();
             }
-        })
+        });
+
+        socket.on('receiveMessage', (data) => {
+            const userid = getCookie('spotify_id');
+            if ((data.friendid === userid && data.sender === activeFriendId) || (data.friendid === activeFriendId && data.sender === userid)) {
+                const conversationBox = document.getElementById('conversation-box');
+                const messageDiv = document.createElement('div');
+                messageDiv.className = data.sender === getCookie('spotify_id') ? 'message-sent-message' : 'message-received-message';
+                messageDiv.innerHTML = `
+                    <p>${data.messageContent}</p>
+                    <small>${new Date(data.timestamp).toLocaleString()}</small>
+                `;
+                conversationBox.appendChild(messageDiv);
+                conversationBox.scrollTop = conversationBox.scrollHeight;
+            }
+        });
 
         function getCookie(name) {
             const value = `; ${document.cookie}`;

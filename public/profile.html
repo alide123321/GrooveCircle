@@ -81,6 +81,7 @@
 
                         // fetch and display each friend's info 
                         for (const friendId of friendsData.friendsList) {
+                            console.log(friendId);
                             const response = await fetch('https://api.spotify.com/v1/users/' + friendId, {
                                 headers: {
                                     'Authorization': 'Bearer ' + getCookie('access_token')
@@ -301,7 +302,7 @@
 
     <!-- Handlebars and jQuery libraries -->
     <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.1/handlebars.min.js"></script>
-    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
 
     <!-- Shared JavaScript file, contains functions for authentication and profile data -->
     <script src="/js/shared.js"></script>
