@@ -35,8 +35,8 @@ router.get('/', (req, res) => {
 			},
 			body: querystring.stringify({
 				code: code,
-				//redirect_uri: `http://localhost:${process.env.PORT}/${process.env.SPOTIFY_REDIRECT_URI}`,
-				redirect_uri: `https://vjc32q5d-${process.env.PORT}.use.devtunnels.ms/${process.env.SPOTIFY_REDIRECT_URI}`,
+				redirect_uri: `http://localhost:${process.env.PORT}/${process.env.SPOTIFY_REDIRECT_URI}`,
+				//redirect_uri: `https://vjc32q5d-${process.env.PORT}.use.devtunnels.ms/${process.env.SPOTIFY_REDIRECT_URI}`,
 				grant_type: 'authorization_code',
 			}),
 		};
