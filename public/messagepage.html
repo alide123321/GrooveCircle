@@ -170,6 +170,13 @@
             }
         });
 
+        document.getElementById('message-input').addEventListener('keypress', async (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                document.getElementById('send-message').click();
+            }
+        })
+
         function getCookie(name) {
             const value = `; ${document.cookie}`;
             const parts = value.split(`; ${name}=`);
