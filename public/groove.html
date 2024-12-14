@@ -31,11 +31,15 @@
 
                 <!-- Waveform Container -->
                 <div id="waveform-container" class="waveform-container" style="display: none;">
-                    <div class="wave"></div>
-                    <div class="wave"></div>
-                    <div class="wave"></div>
-                    <div class="wave"></div>
-                    <div class="wave"></div>
+                    <div class="waves-wrapper">
+                        <div class="wave"></div>
+                        <div class="wave"></div>
+                        <div class="wave"></div>
+                        <div class="wave"></div>
+                        <div class="wave"></div>
+                        <div class="wave"></div>
+                    </div>
+                    <button id="cancel-groove" class="btn-primary">Quit Matching</button>
                 </div>
             </div>
 
@@ -64,6 +68,7 @@
         const messagesArea = document.getElementById('messages-area');
         const messageInput = document.getElementById('message-input');
         const sendButton = document.getElementById('send-button');
+        const quitGrooveButton = document.getElementById('cancel-groove');
         let activeChatroomId = null;
 
         // repeat function to get cookie
@@ -114,25 +119,25 @@
                 waveformContainer.style.display = 'none';
                 chatroomContainer.style.display = 'none';
                 return;
-        }
+            }
 
-        if (chatroomResponse.ok) {
-            // User is in a chatroom
-            const chatroomData = await chatroomResponse.json();
-            activeChatroomId = chatroomData.chatroomId;
-            initialView.style.display = 'none';
-            chatroomContainer.style.display = 'block';
-            await loadChatroom(activeChatroomId);
-            return;
-        }
+            if (chatroomResponse.ok) {
+                // User is in a chatroom
+                const chatroomData = await chatroomResponse.json();
+                activeChatroomId = chatroomData.chatroomId;
+                initialView.style.display = 'none';
+                chatroomContainer.style.display = 'block';
+                await loadChatroom(activeChatroomId);
+                return;
+            }
 
-    } catch (error) {
-        console.error('Error checking initial state:', error);
-        grooveButton.parentElement.style.display = 'block';
-        waveformContainer.style.display = 'none';
-        chatroomContainer.style.display = 'none';
-    }
-}
+            } catch (error) {
+                console.error('Error checking initial state:', error);
+                grooveButton.parentElement.style.display = 'block';
+                waveformContainer.style.display = 'none';
+                chatroomContainer.style.display = 'none';
+            }
+        }
 
         // check initial state when page loads
         checkInitialState();
@@ -158,6 +163,11 @@
                         'userid': userid
                     }
                 });
+
+                if (response.status === 409) {
+                    console.log('User is already in queue');
+                    return;
+                }
 
                 if (!response.ok) throw new Error('calling matching failed');
 
@@ -210,6 +220,52 @@
                 waveformContainer.style.display = 'none'; 
                 grooveButton.parentElement.style.display = 'block'; 
             }
+        });
+
+        // call method to leave matching
+        async function leaveMatching() {
+            const userId = getCookie('spotify_id');
+            if (!userId) {
+                console.error('No user ID found when quitting groove');
+                return;
+            }
+
+            waveformContainer.style.display = 'none';
+            grooveButton.parentElement.style.display = 'block';
+
+            try {
+                // check if the user is matching 
+                const matchingResponse = await fetch('/getMatching', {
+                    headers: { 'userid': userId}
+                });
+
+                const matchingData = await matchingResponse.json();
+
+                if (matchingResponse.ok && matchingData.isInQueue) {
+                    const response = await fetch('/leaveMatching', {
+                        method: 'DELETE',
+                        headers: {
+                            'userid': userId
+                        }
+                    });
+                    if (!response.ok) throw new Error('Failed to leave matching');
+
+                    console.log('Left matching successfully');
+                } else {
+                    console.log('User was not in matching');
+                }
+
+                // reset UI state after successfully leave matching
+            } catch (error) {
+                console.error('Error leaving matching:', error);
+            }
+        }
+
+        // quit groove button
+        quitGrooveButton.addEventListener('click', async function(e) {
+            e.preventDefault();
+            console.log('Quitting groove');
+            await leaveMatching();
         });
 
         async function loadChatroom(chatroomId) {
