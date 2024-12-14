@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
 	if (!chatroom?._id) return res.status(404).json({ errmsg: 'User is not in a chatroom ' });
 
 	res.status(200).json({
-		messages: chatroom._id,
+		chatroomId: chatroom._id,
 	});
 });
 
