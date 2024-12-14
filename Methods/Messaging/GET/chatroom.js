@@ -61,13 +61,21 @@ router.get('/members', async (req, res) => {
 
 					let response = await fetch(`http://localhost:${process.env.PORT}/Username`, fetchOptions);
 					if (!response.ok) {
-						throw new Error('Failed to fetch user info');
+						throw new Error('Failed to fetch username');
+					}
+					response = await response.json();
+					let username = response.username;
+
+					response = await fetch(`http://localhost:${process.env.PORT}/UserIcon`, fetchOptions);
+					if (!response.ok) {
+						throw new Error('Failed to fetch userIcon');
 					}
 					response = await response.json();
 
 					return {
 						userid: participantId,
-						username: response ? response.username : 'Unknown User',
+						username: username ? username : 'Unknown User',
+						userIcon: response.userIcon,
 					};
 				} catch (err) {
 					console.error(`Error fetching user info for participant: ${participantId}`, err);

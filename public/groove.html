@@ -37,6 +37,7 @@
                 cursor: pointer;
                 transition: background-color 0.3s ease;
                 color: white;
+                position: relative;
             }
     
             .group-member-item:hover {
@@ -59,9 +60,20 @@
                 object-fit: cover;
             }
     
-            .group-member-item span {
+            .group-member-item .username {
+                position: absolute;
+                left: 25%;
                 font-size: 1em;
                 color: white;
+                flex-grow: 1;
+            }
+    
+            .group-member-item .userid {
+                font-size: 0.8em;
+                color: #ccc;
+                position: absolute;
+                bottom: 5%;
+                right: 5%;
             }
         </style>
     </head>
@@ -163,15 +175,17 @@ document.addEventListener('DOMContentLoaded', function () {
         const data = await response.json();
         groupMembersList.innerHTML = ''; // Clear the list before adding new members
         data.members.forEach(member => {
-    const profileImage = member.iconUrl || '/images/default-profile.png'; // Fallback image
-    const memberItem = document.createElement('div');
-    memberItem.className = 'group-member-item';
-    memberItem.innerHTML = `
-        <img src="${profileImage}" alt="${member.username}'s profile" class="group-member-icon">
-        <p>${member.username}</p>
-    `;
-    groupMembersList.appendChild(memberItem);
-});
+            
+            const profileImage = member.iconUrl || '/images/default-profile.png'; // Fallback image
+            const memberItem = document.createElement('div');
+            memberItem.className = 'group-member-item';
+            memberItem.innerHTML = 
+            `<img src="${member.userIcon}" alt="/images/default-profile.png"'s class="group-member-icon">
+            <span class="username">${member.username}</span>
+            <span class="userid">${member.userid}</span>`;
+            
+            groupMembersList.appendChild(memberItem);
+        });
 
     } catch (error) {
         console.error('Error loading group members:', error);
