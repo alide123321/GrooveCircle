@@ -35,4 +35,62 @@ router.get('/', async (req, res) => {
 	});
 });
 
+// NEW: Endpoint for retrieving participants in a group chat (Groove Page)
+router.get('/participants', async (req, res) => {
+	const { chatroomid, userid } = req.headers;
+
+	if (!chatroomid || !userid) {
+		return res.status(400).json({
+			errmsg: 'chatroomid and userid are required',
+		});
+	}
+
+	try {
+		const fetchOptions = {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+				chatroomid: chatroomid,
+			},
+		};
+
+		const chatroomInfo = await fetch(`http://localhost:${process.env.PORT}/chatroom`, fetchOptions).then((response) =>
+			response.json()
+		);
+
+		if (!chatroomInfo || !chatroomInfo.participants) {
+			return res.status(404).json({
+				errmsg: 'Chatroom not found',
+			});
+		}
+
+		// Filter out the requesting user from participants list
+		const otherParticipants = chatroomInfo.participants.filter((participant) => participant !== userid);
+
+		const participantsDetails = await Promise.all(
+			otherParticipants.map(async (participantId) => {
+				const userInfo = await fetch(`http://localhost:${process.env.PORT}/Username`, {
+					method: 'GET',
+					headers: {
+						'Content-Type': 'application/json',
+						userid: participantId,
+					},
+				}).then((res) => res.json());
+
+				return {
+					id: participantId,
+					username: userInfo.username || participantId,
+				};
+			})
+		);
+
+		res.status(200).json({ participants: participantsDetails });
+	} catch (error) {
+		console.error('Error fetching participants:', error);
+		res.status(500).json({
+			errmsg: 'Error retrieving participants',
+		});
+	}
+});
+
 module.exports = router;

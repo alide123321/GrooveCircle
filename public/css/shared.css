@@ -527,6 +527,54 @@ body {
     display: block;
     margin-top: 4px;
 }
+/*new part for side bar*/
+.group-sidebar {
+    width: 30%;
+    background-color: #1c1c1c;
+    border-radius: 10px;
+    padding: 10px;
+    margin-right: 20px;
+    color: white;
+    overflow-y: auto;
+    max-height: 400px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+.group-sidebar h3 {
+    text-align: center;
+    margin-bottom: 10px;
+    font-size: 1.2em;
+    color: #f0f0f0;
+}
+
+.group-member-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    margin-bottom: 8px;
+    border-radius: 5px;
+    background-color: #333;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.group-member-item img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+    object-fit: cover;
+}
+
+.group-member-item span {
+    font-size: 1em;
+    color: white;
+}
+
+.group-member-item:hover {
+    background-color: #444;
+}
+
 /* groove.html end */
 
 .messages-area {

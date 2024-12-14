@@ -43,339 +43,204 @@
                 </div>
             </div>
 
-            <!-- chatroom container (hidden by default) -->
-            <div id="chatroom-container" class="message-main-container" style="display: none;">
-                <div class="message-conversation-box" id="messages-area"></div>
-                <div class="message-input-container">
-                    <input type="text" id="message-input" class="form-control" placeholder="Type your message here...">
-                    <button id="send-button" class="btn btn-primary">Send</button>
-                </div>
+<!-- chatroom container (hidden by default) -->
+<div id="chatroom-container" class="message-main-container" style="display: none;">
+    <div style="display: flex; gap: 20px;">
+        <!-- Sidebar for group members -->
+        <div id="group-sidebar" class="group-sidebar">
+            <h3>Group Members</h3>
+            <div id="group-members-list">
+                <!-- Members will be dynamically added here -->
             </div>
+        </div>
 
+        <!-- Conversation box -->
+        <div style="width: 70%;">
+            <div class="message-conversation-box" id="messages-area"></div>
+            <div class="message-input-container">
+                <input type="text" id="message-input" class="form-control" placeholder="Type your message here...">
+                <button id="send-button" class="btn btn-primary">Send</button>
+            </div>
         </div>
     </div>
+</div>
+
     
     <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
     <script src="/js/shared.js"></script>
 </body>
 </html>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const grooveButton = document.getElementById('groove-button');
-        const waveformContainer = document.getElementById('waveform-container');
-        const initialView = document.getElementById('initial-view');
-        const chatroomContainer = document.getElementById('chatroom-container');
-        const messagesArea = document.getElementById('messages-area');
-        const messageInput = document.getElementById('message-input');
-        const sendButton = document.getElementById('send-button');
-        const quitGrooveButton = document.getElementById('cancel-groove');
-        let activeChatroomId = null;
+    document.addEventListener('DOMContentLoaded', function () {
+    const grooveButton = document.getElementById('groove-button');
+    const waveformContainer = document.getElementById('waveform-container');
+    const initialView = document.getElementById('initial-view');
+    const chatroomContainer = document.getElementById('chatroom-container');
+    const messagesArea = document.getElementById('messages-area');
+    const messageInput = document.getElementById('message-input');
+    const sendButton = document.getElementById('send-button');
+    const quitGrooveButton = document.getElementById('cancel-groove');
+    const groupSidebar = document.getElementById('group-sidebar'); // Sidebar container
+    const groupMembersList = document.getElementById('group-members-list'); // Members list container
+    let activeChatroomId = null;
 
-        // repeat function to get cookie
-        function getCookie(name) {
-            let value = "; " + document.cookie; 
-            let parts = value.split("; " + name + "=");
-            if (parts.length == 2) return parts.pop().split(";").shift();
+    // Function to get a cookie value
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    // Function to load group members into the sidebar
+    async function loadGroupMembers(chatroomId) {
+        try {
+            const response = await fetch(`/chatroom/members`, {
+                headers: { chatroomid: chatroomId }
+            });
+
+            if (!response.ok) throw new Error('Failed to fetch group members.');
+
+            const data = await response.json();
+            groupMembersList.innerHTML = ''; // Clear the list before adding new members
+
+            data.members.forEach(member => {
+                if (member.userid !== getCookie('spotify_id')) { // Exclude the current user
+                    const memberItem = document.createElement('div');
+                    memberItem.className = 'group-member-item';
+                    memberItem.innerHTML = `
+                        <p><strong>${member.username}</strong> (${member.userid})</p>
+                    `;
+                    groupMembersList.appendChild(memberItem);
+                }
+            });
+        } catch (error) {
+            console.error('Error loading group members:', error);
+            groupMembersList.innerHTML = '<p>Failed to load group members.</p>';
+        }
+    }
+
+    // Function to load chatroom data
+    async function loadChatroom(chatroomId) {
+        try {
+            const response = await fetch(`/chatroom`, {
+                headers: {
+                    'chatroomid': chatroomId
+                }
+            });
+            const data = await response.json();
+
+            if (!data || !data.messages) {
+                messagesArea.innerHTML = '<p>No messages yet. Start the conversation.</p>';
+                return;
+            }
+
+            displayMessages(data.messages);
+
+            // Load group members into the sidebar
+            await loadGroupMembers(chatroomId);
+
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        } catch (error) {
+            console.error('Error loading chatroom:', error);
+            messagesArea.innerHTML = '<p>Failed to load conversation history.</p>';
+        }
+    }
+
+    // Function to display messages
+    async function displayMessages(messages) {
+        messagesArea.innerHTML = ''; // Clear existing messages
+
+        for (const message of messages) {
+            const isCurrentUser = message.sender === getCookie('spotify_id');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `group-message-item ${isCurrentUser ? 'group-message-sent-message' : 'group-message-received-message'}`;
+            messageDiv.innerHTML = `
+                <div class="group-message-content-with-icon">
+                    <div class="group-message-bubble">
+                        <p>${message.message}</p>
+                        <small>${new Date(message.timestamp).toLocaleTimeString()}</small>
+                    </div>
+                </div>
+            `;
+            messagesArea.appendChild(messageDiv);
         }
 
-        async function checkInitialState() {
-            const userid = getCookie('spotify_id');
-            if (!userid) {
-                console.error('No user ID found');
-                return;
-            }
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+    }
 
-            try {
-                // Check if user is in a chatroom
-                const chatroomResponse = await fetch('/inChatroom', {
-                    headers: { userid }
-                });
-                
-                console.log('Chatroom response: ', chatroomResponse.status);
+    grooveButton.addEventListener('click', async function (e) {
+        e.preventDefault();
 
-                if (chatroomResponse.status === 404) {
-                    // If not in chatroom, check if in queue
-                    const matchingResponse = await fetch('/getMatching', {
-                        headers: { userid }
-                    });
-
-                    const matchingData = await matchingResponse.json();
-                    console.log('Matching Response:', {
-                        status: matchingResponse.status,
-                        data: matchingData
-                    });
-
-                    // if user is in queue show waveform
-                    if (matchingResponse.status === 200 && matchingData.isInQueue) {
-                        console.log('User is in queue, showing waveform');
-                        grooveButton.parentElement.style.display = 'none';
-                        waveformContainer.style.display = 'flex';
-                        return;
-                    }
-
-                // Not in queue either, show groove button
-                console.log('User is not in queue or chatroom, showing groove button');
-                grooveButton.parentElement.style.display = 'block';
-                waveformContainer.style.display = 'none';
-                chatroomContainer.style.display = 'none';
-                return;
-            }
-
-            if (chatroomResponse.ok) {
-                // User is in a chatroom
-                const chatroomData = await chatroomResponse.json();
-                activeChatroomId = chatroomData.chatroomId;
-                initialView.style.display = 'none';
-                chatroomContainer.style.display = 'block';
-                await loadChatroom(activeChatroomId);
-                return;
-            }
-
-            } catch (error) {
-                console.error('Error checking initial state:', error);
-                grooveButton.parentElement.style.display = 'block';
-                waveformContainer.style.display = 'none';
-                chatroomContainer.style.display = 'none';
-            }
+        const userid = getCookie('spotify_id');
+        if (!userid) {
+            console.error('No user ID found');
+            return;
         }
 
-        // check initial state when page loads
-        checkInitialState();
+        // Show waveform
+        grooveButton.parentElement.style.display = 'none';
+        waveformContainer.style.display = 'flex';
 
-        grooveButton.addEventListener('click', async function(e) {
-            e.preventDefault(); 
-
-            const userid = getCookie('spotify_id');
-            if (!userid) {
-                console.error('No user ID found');
-                return;
-            }
-
-            // show waveform
-            grooveButton.parentElement.style.display = 'none'; 
-            waveformContainer.style.display = 'flex'; 
-
-            try {
-                const response = await fetch('/matching', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'userid': userid
-                    }
-                });
-
-                if (response.status === 409) {
-                    console.log('User is already in queue');
-                    return;
+        try {
+            const response = await fetch('/matching', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    userid
                 }
+            });
 
-                if (!response.ok) throw new Error('calling matching failed');
+            if (!response.ok) throw new Error('Failed to start matching.');
 
-                const data = await response.json();
-                console.log('Matching response: ', data);
+            const data = await response.json();
+            activeChatroomId = data.chatroomId;
 
-                if (data.chatroomId) {
-                    activeChatroomId = data.chatroomId;
+            initialView.style.display = 'none';
+            chatroomContainer.style.display = 'block';
 
-                    // add delay so chatroom is created before calling loadChatroom
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-
-                    // Try loading chatroom multiple times
-                    let attempts = 0; 
-                    const maxAttempts = 3; 
-
-                    while (attempts < maxAttempts) {
-                        try {
-                            const chatroomResponse = await fetch(`/chatroom`, {
-                                headers: {
-                                    'chatroomid': activeChatroomId
-                                }
-                            });
-
-                            if (chatroomResponse.ok) {
-                                // hide initial view and show chatroom 
-                                initialView.style.display = 'none';
-                                chatroomContainer.style.display = 'block'; 
-                                
-                                // load chatroom data
-                                await loadChatroom(activeChatroomId);
-                                break; 
-                            }
-                        } catch (error) {
-                            console.log(`Attempt ${attempts + 1} failed, retrying...`);
-                        }
-                        attempts++;
-                        if (attempts < maxAttempts) {
-                            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second between attempts
-                        }
-                    }
-
-                    if (attempts === maxAttempts) {
-                        throw new Error('Failed to load chatroom after multiple attempts');
-                    }
-                }
-            } catch (error) {
-                console.error('Error', error); 
-                // reset UI on error 
-                waveformContainer.style.display = 'none'; 
-                grooveButton.parentElement.style.display = 'block'; 
-            }
-        });
-
-        // call method to leave matching
-        async function leaveMatching() {
-            const userId = getCookie('spotify_id');
-            if (!userId) {
-                console.error('No user ID found when quitting groove');
-                return;
-            }
-
+            // Load chatroom and group members
+            await loadChatroom(activeChatroomId);
+        } catch (error) {
+            console.error('Error starting matching:', error);
             waveformContainer.style.display = 'none';
             grooveButton.parentElement.style.display = 'block';
-
-            try {
-                // check if the user is matching 
-                const matchingResponse = await fetch('/getMatching', {
-                    headers: { 'userid': userId}
-                });
-
-                const matchingData = await matchingResponse.json();
-
-                if (matchingResponse.ok && matchingData.isInQueue) {
-                    const response = await fetch('/leaveMatching', {
-                        method: 'DELETE',
-                        headers: {
-                            'userid': userId
-                        }
-                    });
-                    if (!response.ok) throw new Error('Failed to leave matching');
-
-                    console.log('Left matching successfully');
-                } else {
-                    console.log('User was not in matching');
-                }
-
-                // reset UI state after successfully leave matching
-            } catch (error) {
-                console.error('Error leaving matching:', error);
-            }
         }
-
-        // quit groove button
-        quitGrooveButton.addEventListener('click', async function(e) {
-            e.preventDefault();
-            console.log('Quitting groove');
-            await leaveMatching();
-        });
-
-        async function loadChatroom(chatroomId) {
-            try {
-                const response = await fetch(`/chatroom`, {
-                    headers: {
-                        'chatroomid': chatroomId
-                    }
-                });
-                const data = await response.json();
-                
-                if (!data || !data.messages) {
-                    messagesArea.innerHTML = '<p>No messages yet. Start the conversation.</p>';
-                    return;
-                }
-
-                displayMessages(data.messages);
-                messagesArea.scrollTop = messagesArea.scrollHeight;
-            } catch (error) {
-                console.error('Error loading chatroom: ', error);
-                messagesArea.innerHTML = '<p>Failed to load conversation history.</p>';
-            }
-        }
-
-        async function getUserIcon(userId) {
-            try {
-                const response = await fetch('/UserIcon', {
-                    headers: {
-                        'userid': userId
-                    }
-                });
-                const data = await response.json();
-                return data.userIcon;
-            } catch (error) {
-                console.error('Error fetching user icon:', error);
-                return '/images/default-profile.png'; // fallback to default icon
-            }
-        }
-
-        async function displayMessages(messages) {
-            // Clear existing messages
-            messagesArea.innerHTML = '';
-
-            // Process each message
-            for (const message of messages) {
-                const isCurrentUser = message.sender === getCookie('spotify_id');
-                const userIcon = await getUserIcon(message.sender);
-                
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `group-message-item ${isCurrentUser ? 'group-message-sent-message' : 'group-message-received-message'}`;
-                
-                messageDiv.innerHTML = `
-                    <div class="group-message-content-with-icon">
-                        ${!isCurrentUser ? `<img src="${userIcon}" class="group-message-user-icon" alt="user icon">` : ''}
-                        <div class="group-message-bubble">
-                            <p>${message.message}</p>
-                            <small>${new Date(message.timestamp).toLocaleTimeString()}</small>
-                        </div>
-                        ${isCurrentUser ? `<img src="${userIcon}" class="group-message-user-icon" alt="user icon">` : ''}
-                    </div>
-                `;
-                messagesArea.appendChild(messageDiv);
-            }
-            messagesArea.scrollTop = messagesArea.scrollHeight;
-        }
-
-        // Handle send message button click
-        sendButton.addEventListener('click', sendMessage); 
-
-        // Handle enter key press in input
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                sendMessage(); 
-            }
-        }); 
-
-        async function sendMessage() {
-            const messageContent = messageInput.value.trim(); 
-            const userid = getCookie('spotify_id');
-
-            if (!activeChatroomId || !messageContent) {
-                console.error('Missing chatroomId or message content'); 
-                return; 
-            }
-
-            try {
-                const response = await fetch('/sendMessageGroup', {
-                    method: 'POST', 
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'userid': userid,
-                        'chatroomid': activeChatroomId
-                    },
-                    body: JSON.stringify({ messageContent })
-                });
-
-                if (!response.ok) throw new Error('Failed to send message'); 
-
-                messageInput.value = ''; 
-                await loadChatroom(activeChatroomId);
-            } catch (error) {
-                console.error('Error sending message:', error);
-            }
-        }
-
-        // auto-refresh chatroom every 3 seconds
-        setInterval(() => {
-            if (activeChatroomId) {
-                loadChatroom(activeChatroomId);
-            }
-        }, 3000);
     });
+
+    sendButton.addEventListener('click', sendMessage);
+
+    async function sendMessage() {
+        const messageContent = messageInput.value.trim();
+        const userid = getCookie('spotify_id');
+
+        if (!activeChatroomId || !messageContent) {
+            console.error('Missing chatroomId or message content');
+            return;
+        }
+
+        try {
+            const response = await fetch('/sendMessageGroup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    userid,
+                    'chatroomid': activeChatroomId
+                },
+                body: JSON.stringify({ messageContent })
+            });
+
+            if (!response.ok) throw new Error('Failed to send message.');
+
+            messageInput.value = '';
+            await loadChatroom(activeChatroomId);
+        } catch (error) {
+            console.error('Error sending message:', error);
+        }
+    }
+
+    // Auto-refresh chatroom every 3 seconds
+    setInterval(() => {
+        if (activeChatroomId) loadChatroom(activeChatroomId);
+    }, 3000);
+});
 </script>
