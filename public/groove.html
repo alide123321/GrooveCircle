@@ -128,7 +128,7 @@
         </div>
 
         <!-- Conversation box -->
-        <div style="width: 70%;">
+        <div style="width: 100%;">
             <div class="message-conversation-box" id="messages-area"></div>
             <div class="message-input-container">
                 <input type="text" id="message-input" class="form-control" placeholder="Type your message here...">
@@ -402,14 +402,24 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    function displayMessages(messages) {
+    async function displayMessages(messages) {
         messagesArea.innerHTML = '';
-        messages.forEach(message => {
+
+        for (const message of messages) {
             const isCurrentUser = message.sender === getCookie('spotify_id');
             const messageDiv = document.createElement('div');
             messageDiv.className = `group-message-item ${isCurrentUser ? 'group-message-sent-message' : 'group-message-received-message'}`;
+
+            // fetch user icon for the message sender 
+            const iconResponse = await fetch('/UserIcon', {
+                headers: { userid: message.sender }
+            });
+            const iconData = await iconResponse.json();
+            const iconUrl = iconData.userIcon || '/images/default-profile.png';
+
             messageDiv.innerHTML = `
                 <div class="group-message-content-with-icon">
+                    <img src="${iconUrl}" alt="User Icon" class="group-message-user-icon">
                     <div class="group-message-bubble">
                         <p>${message.message}</p>
                         <small>${new Date(message.timestamp).toLocaleTimeString()}</small>
@@ -417,11 +427,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             `;
             messagesArea.appendChild(messageDiv);
-        });
-        messagesArea.scrollTop = messagesArea.scrollHeight; // Scroll to bottom
+        }
+        messagesArea.scrollTop = messagesArea.scrollHeight; 
     }
 
-    sendButton.addEventListener('click', async function() {
+    async function sendMessage() {
         const messageContent = messageInput.value.trim();
         if (!messageContent) {
             console.error('No message content');
@@ -430,10 +440,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         try {
             const response = await fetch('/sendMessageGroup', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    userid: getCookie('spotify_id'),
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                userid: getCookie('spotify_id'),
                     chatroomid: activeChatroomId
                 },
                 body: JSON.stringify({ messageContent })
@@ -446,6 +456,17 @@ document.addEventListener('DOMContentLoaded', function () {
             loadGroupMembers(activeChatroomId);
         } catch (error) {
             console.error('Error sending message:', error);
+        }
+    }
+
+    // Event listener for send button
+    sendButton.addEventListener('click', sendMessage);
+
+    // Event listener for Enter key
+    messageInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            sendMessage();
         }
     });
 
