@@ -28,16 +28,26 @@ io.on('connection', (socket) => {
 			headers: {
 				'Content-Type': 'application/json',
 				userid: data.userid,
-				chatroomid: data.chatroomId,
+				chatroomid: data.chatroomid,
 			},
-			body: JSON.stringify({ messageContent: data.message }),
+			body: JSON.stringify({ messageContent: data.messageContent }),
 		});
+
+		let UsersIcon = await fetch(`http://localhost:${process.env.PORT}/UserIcon`, {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+				userid: data.userid,
+			},
+		});
+		UsersIcon = await UsersIcon.json();
 
 		if (response.ok) {
 			// Broadcast message to room
-			io.to(data.chatroomId).emit('message', {
-				message: data.message,
+			io.to(data.chatroomid).emit('receiveMessageDM', {
+				message: data.messageContent,
 				sender: data.userid,
+				userIcon: UsersIcon.userIcon,
 				timestamp: new Date(),
 			});
 		}

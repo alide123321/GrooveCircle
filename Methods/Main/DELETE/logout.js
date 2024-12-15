@@ -11,6 +11,7 @@ router.delete('/', (req, res) => {
 	res.clearCookie('access_token');
 	res.clearCookie('refresh_token');
 	res.clearCookie('spotify_id');
+	res.clearCookie('user_icon');
 
 	// destroy session
 	req.session.destroy((err) => {

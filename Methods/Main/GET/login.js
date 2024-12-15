@@ -18,8 +18,8 @@ router.get('/', function (req, res) {
 				response_type: 'code',
 				client_id: process.env.SPOTIFY_CLIENT_ID,
 				scope: scope,
-				redirect_uri: `http://localhost:${process.env.PORT}/${process.env.SPOTIFY_REDIRECT_URI}`,
-				//redirect_uri: `https://vjc32q5d-${process.env.PORT}.use.devtunnels.ms/${process.env.SPOTIFY_REDIRECT_URI}`,
+				//redirect_uri: `http://localhost:${process.env.PORT}/${process.env.SPOTIFY_REDIRECT_URI}`,
+				redirect_uri: `https://vjc32q5d-${process.env.PORT}.use.devtunnels.ms/${process.env.SPOTIFY_REDIRECT_URI}`,
 				state: state,
 			})
 	);

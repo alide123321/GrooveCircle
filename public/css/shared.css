@@ -422,7 +422,7 @@ body {
     border-radius: 5px;
     cursor: pointer;
     background-color: #333;
-    color: white;
+    color: while;
     transition: background-color 0.3s ease;
 }
 
@@ -454,13 +454,26 @@ body {
 .message-sent-message {
     text-align: right;
     color: white;
+    font-size: 1.4em; /* Increased font size */
+    font-family: Arial, sans-serif; /* Changed font */
     margin: 5px 0;
 }
 
 .message-received-message {
     text-align: left;
     color: white;
+    font-size: 1.4em; 
+    font-family: Arial, sans-serif; 
     margin: 5px 0;
+}
+
+.message-sent-message small,
+.message-received-message small {
+    font-size: 0.6em; 
+    color: #888;
+    font-family: 'Helvetica Neue', sans-serif; 
+    display: block;
+    margin-top: 2px; 
 }
 
 .message-input-container {

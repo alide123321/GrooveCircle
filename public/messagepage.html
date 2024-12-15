@@ -173,7 +173,8 @@
             if (!activeFriendId || !messageContent) {
                 alert('Select a friend and type a message to send.');
                 return;
-            }            
+            }      
+
             socket.emit('sendMessage', {
                 userid,
                 friendid: activeFriendId,
@@ -192,18 +193,16 @@
         });
 
         socket.on('receiveMessage', (data) => {
-            const userid = getCookie('spotify_id');
-            if ((data.friendid === userid && data.sender === activeFriendId) || (data.friendid === activeFriendId && data.sender === userid)) {
-                const conversationBox = document.getElementById('conversation-box');
-                const messageDiv = document.createElement('div');
-                messageDiv.className = data.sender === getCookie('spotify_id') ? 'message-sent-message' : 'message-received-message';
-                messageDiv.innerHTML = `
-                    <p>${data.messageContent}</p>
-                    <small>${new Date(data.timestamp).toLocaleString()}</small>
-                `;
-                conversationBox.appendChild(messageDiv);
-                conversationBox.scrollTop = conversationBox.scrollHeight;
-            }
+            const conversationBox = document.getElementById('conversation-box');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = data.sender === getCookie('spotify_id') ? 'message-sent-message' : 'message-received-message';
+            messageDiv.innerHTML = `
+                <p>${data.messageContent}</p>
+                <small>${new Date(data.timestamp).toLocaleString()}</small>
+            `;
+            conversationBox.appendChild(messageDiv);
+            conversationBox.scrollTop = conversationBox.scrollHeight;
+            
         });
 
         function getCookie(name) {

@@ -17,7 +17,7 @@
                 max-height: 400px; /* Adjust height based on layout */
                 box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
                 position: absolute; /* Adjust positioning as needed */
-                left: 0;
+                left: 2%;
             }
     
             .group-sidebar h3 {
@@ -220,6 +220,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 activeChatroomId = chatroomData.chatroomId;
                 initialView.style.display = 'none';
                 chatroomContainer.style.display = 'block';
+
+                // Leave previous room if any
+                if (activeChatroomId) {
+                    socket.emit('leaveRoom', activeChatroomId);
+                }
+   
+                socket.emit('joinRoom', activeChatroomId)
+
                 await loadChatroom(activeChatroomId);
                 await loadGroupMembers(activeChatroomId);
                 return;
@@ -291,6 +299,13 @@ document.addEventListener('DOMContentLoaded', function () {
                             // hide initial view and show chatroom 
                             initialView.style.display = 'none';
                             chatroomContainer.style.display = 'block'; 
+
+                            // Leave previous room if any
+                            if (chatroomId) {
+                                socket.emit('leaveRoom', chatroomId);
+                            }
+                        
+                            socket.emit('joinRoom', chatroomId)
                             
                             // load chatroom data
                             await loadChatroom(activeChatroomId);
@@ -401,7 +416,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 messagesArea.innerHTML = '<p>No messages yet. Start the conversation.</p>';
                 return;
             }
-            displayMessages(data.messages);
+            await displayMessages(data.messages);
         } catch (error) {
             console.error('Error loading chatroom:', error);
             messagesArea.innerHTML = '<p>Failed to load conversation history.</p>';
@@ -410,31 +425,45 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function displayMessages(messages) {
         messagesArea.innerHTML = '';
-
-        for (const message of messages) {
+        
+        // Get unique sender IDs
+        const senderIds = [...new Set(messages.map(m => m.sender))];
+        
+        // Fetch all icons in parallel
+        const iconPromises = senderIds.map(senderId => 
+            fetch('/UserIcon', {
+                headers: { userid: senderId }
+            }).then(res => res.json())
+        );
+        
+        // Wait for all icon requests to complete
+        const iconResults = await Promise.all(iconPromises);
+        const iconMap = Object.fromEntries(
+            senderIds.map((id, index) => [id, iconResults[index].userIcon || '/images/default-profile.png'])
+        );
+        
+        // Build all messages at once
+        const fragment = document.createDocumentFragment();
+        
+        messages.forEach(message => {
             const isCurrentUser = message.sender === getCookie('spotify_id');
             const messageDiv = document.createElement('div');
             messageDiv.className = `group-message-item ${isCurrentUser ? 'group-message-sent-message' : 'group-message-received-message'}`;
 
-            // fetch user icon for the message sender 
-            const iconResponse = await fetch('/UserIcon', {
-                headers: { userid: message.sender }
-            });
-            const iconData = await iconResponse.json();
-            const iconUrl = iconData.userIcon || '/images/default-profile.png';
-
             messageDiv.innerHTML = `
                 <div class="group-message-content-with-icon">
-                    <img src="${iconUrl}" alt="User Icon" class="group-message-user-icon">
+                    <img src="${iconMap[message.sender]}" alt="User Icon" class="group-message-user-icon">
                     <div class="group-message-bubble">
                         <p>${message.message}</p>
                         <small>${new Date(message.timestamp).toLocaleTimeString()}</small>
                     </div>
                 </div>
             `;
-            messagesArea.appendChild(messageDiv);
-        }
-        messagesArea.scrollTop = messagesArea.scrollHeight; 
+            fragment.appendChild(messageDiv);
+        });
+
+        messagesArea.appendChild(fragment);
+        messagesArea.scrollTop = messagesArea.scrollHeight;
     }
 
     async function sendMessage() {
@@ -448,7 +477,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
             socket.emit('sendchatMessage', {
                 userid: getCookie('spotify_id'),
-                friendid: activeFriendId,
                 chatroomid: activeChatroomId,
                 messageContent
             });
@@ -469,6 +497,23 @@ document.addEventListener('DOMContentLoaded', function () {
             e.preventDefault();
             sendMessage();
         }
+    });
+
+    socket.on('receiveMessageDM', (data) => {
+        const isCurrentUser = data.sender === getCookie('spotify_id');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `group-message-item ${isCurrentUser ? 'group-message-sent-message' : 'group-message-received-message'}`;
+        messageDiv.innerHTML = `
+                <div class="group-message-content-with-icon">
+                    <img src="${data.userIcon || '/images/default-profile.png'}" alt="User Icon" class="group-message-user-icon">
+                    <div class="group-message-bubble">
+                        <p>${data.message}</p>
+                        <small>${new Date(data.timestamp).toLocaleTimeString()}</small>
+                    </div>
+                </div>
+            `;
+        messagesArea.appendChild(messageDiv);
+        messagesArea.scrollTop = messagesArea.scrollHeight;
     });
 
 
